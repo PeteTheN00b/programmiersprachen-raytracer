@@ -14,3 +14,7 @@ target_link_libraries(${FRAMEWORK_NAME}
   ${OPENGL_LIBRARIES}
   ${GLFW_LIBRARIES}
   )
+
+add_executable(aufg1
+shape.cpp
+)
