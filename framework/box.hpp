@@ -6,7 +6,7 @@
 class Box : public Shape
 {
 public:
-	Box(float h, float l, float w);
+	Box(std::string name, Color color, float h, float l, float w);
 
 	float area() const override;
 	float volume() const override;

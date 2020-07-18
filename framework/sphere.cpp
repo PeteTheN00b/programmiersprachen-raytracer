@@ -4,7 +4,8 @@
 #include <math.h>
 
 
-Sphere::Sphere(glm::vec3 centre, float radius) :
+Sphere::Sphere(std::string name, Color color, glm::vec3 centre, float radius) :
+	Shape(name, color),
 	centre_{centre},
 	radius_{radius} {}
 

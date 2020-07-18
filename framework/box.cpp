@@ -1,6 +1,7 @@
 #include "box.hpp"
 
-Box::Box(float l, float w, float h) :
+Box::Box(std::string name, Color color, float l, float w, float h) :
+	Shape(name, color),
 	height_{ h },
 	length_{ l },
 	width_{ w } {}
