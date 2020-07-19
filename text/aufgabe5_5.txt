@@ -1,0 +1,6 @@
+"override" allows you to overload a virtual function from a parent class in such a way that calling the virtual function will use the overloaded function from the derived class,
+allowing you to use different functionality for similar purposes, with a relevant example being the calculation of volume in different types of shapes
+
+failing to use "override" will cause a redefinition of the function to occur. In this case a pointer of type parent class which points to a derived class would attempt to call the
+function from the parent class (even if it is virtual, and particularly problematic if it is purely virtual). It will not bother to check for the function in the child class, and will
+call a potentially incorrect or incomplete variation from the parent class (such as in the case of Shape and Sphere), and will thus lead to undesired results.

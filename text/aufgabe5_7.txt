@@ -1,0 +1,10 @@
+The static type of a variable refers to the type it possesses during translation.
+The dynamic type of a variable refers to its type at runtime.
+
+These can be different in the case of templates or inheritance, as at the time of translation only general rules which apply to the most generic possible variable type can be used,
+while at runtime, particularly in the case of inheritance the type of our variable can be specified and use overriden functions from a child class rather than those present in the
+parent class.
+
+In the given example, s1 is both statically and dynamically a sphere. The pointer itself can only contain Sphere objects, and it stores a pointer to a Sphere object.
+s1 is statically a Shape, but dynamically a sphere. The pointer itself can contain any object which is derived from a Shape, and is currently storing a pointer to a Sphere object,
+and will interact with the virtual functions which were overridden by said sphere.
