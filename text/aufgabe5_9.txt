@@ -1,0 +1,7 @@
+"Klassenhierarchie" shows the inheritance relationship between classes, where some classes are derived from other classes and thus inherit all of their properties.
+
+"Objekthierarchie" shows the structure of a class, displaying the class itself and the other classes / types it consists of.
+
+A class diagram shows the hierarchal static relationship between classes, displaying which properties are added onto derived classes, and which classes they derive from.
+
+An object diagram shows a dynamic relationship within an instance of a class, displaying the instance of the class itself, and its relationship to its components.
