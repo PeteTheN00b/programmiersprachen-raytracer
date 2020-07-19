@@ -2,7 +2,12 @@
 
 Shape::Shape(std::string name, Color color) :
 	name_{ name },
-	color_{ color } {}
+	color_{ color } {std::cout << "Shape ctor" << std::endl; }
+
+Shape::~Shape()
+{
+	std::cout << "Shape dtor" << std::endl;
+}
 
 std::ostream& Shape::print(std::ostream& os) const
 {

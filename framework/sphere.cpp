@@ -9,7 +9,12 @@
 Sphere::Sphere(std::string name, Color color, glm::vec3 centre, float radius) :
 	Shape(name, color),
 	centre_{centre},
-	radius_{radius} {}
+	radius_{radius} {std::cout << "Sphere ctor" << std::endl; }
+
+Sphere::~Sphere()
+{
+	std::cout << "Sphere dtor" << std::endl;
+}
 
 float Sphere::area() const
 {
