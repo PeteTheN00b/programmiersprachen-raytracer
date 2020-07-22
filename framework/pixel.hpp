@@ -21,6 +21,7 @@ class Pixel
 public :
 
   Pixel(unsigned int = 0, unsigned int = 0);
+  Pixel(unsigned int, unsigned int, Color const& color);
   void print(std::ostream&) const;
 
   unsigned int x = 0;
