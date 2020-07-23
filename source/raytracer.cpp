@@ -29,10 +29,10 @@ int main(int argc, char* argv[])
   world.push_back(new Sphere{ "Sphere1", Color{0.7f, 0.f, 0.2f}, {0.f, 0.f, -150.f}, 50 });
   world.push_back(new Sphere{ "Sphere2", Color{0.7f, 0.1f, 0.9f}, {-20.f, -70.f, -150.f}, 80 });
 
-  float const k_d = 0.7f; //diffusion reflectivity of all materials
-  float const k_a = 0.5f; //reflectivity of ambient light
+  float const k_d = 0.f; //diffusion reflectivity of all materials
+  float const k_a = 0.f; //reflectivity of ambient light
   float const I_a = 0.1f; //intensity of ambient light
-  float const k_s = 0.f; //reflectivity of specular light for all materials
+  float const k_s = 0.9f; //reflectivity of specular light for all materials
 
   std::vector<PointLight*> lights;
   lights.push_back(new PointLight{ {300.f, 500.f, 0.f}, 0.5f });
@@ -85,18 +85,14 @@ int main(int argc, char* argv[])
 
                   float dotProduct1 = abs(glm::dot<float>(closestHit.objNormal, direction));
 
-                  //incorrect calculations for specular, rethink later
-                  float lightAngleX = atan(closestHit.intersectPoint.y - direction.y / closestHit.intersectPoint.z - direction.z);
-                  float lightAngleZ = atan(closestHit.intersectPoint.y - direction.y / closestHit.intersectPoint.x - direction.x);
-                  //assuming y = 1
-                  glm::vec3 reflectedLight;
-                  reflectedLight.x = 1 / tan(lightAngleZ + 180);
-                  reflectedLight.z = 1 / tan(lightAngleX + 180);
-                  reflectedLight.y = 1;
-                  reflectedLight = glm::normalize(reflectedLight);
+                  glm::vec3 reflectedLightDirection = closestHit.intersectPoint + closestHit.objNormal - l->origin;
+                  reflectedLightDirection *= 2;
+                  reflectedLightDirection -= closestHit.intersectPoint;
+                  reflectedLightDirection = glm::normalize(reflectedLightDirection);
+
                   glm::vec3 reverseOrigin = observerLoc - closestHit.intersectPoint;
                   reverseOrigin = glm::normalize(reverseOrigin);
-                  float dotProduct2 = pow(abs(glm::dot<float>(reflectedLight, reverseOrigin)), 10);
+                  float dotProduct2 = pow(abs(glm::dot<float>(reflectedLightDirection, reverseOrigin)), 5);
                   intensity += l->intensity * (k_d * (float)notObstructed * dotProduct1 + k_s * dotProduct2);
               }
 
