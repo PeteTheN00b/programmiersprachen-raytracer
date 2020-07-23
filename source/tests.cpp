@@ -102,7 +102,7 @@ TEST_CASE("Sphere area and volume functions")
 
 TEST_CASE("Box area and volume functions")
 {
-    Box b{ "MyBox", {0, 1, 0.5}, 2, 4, 8 };
+    Box b{ "MyBox", {0, 1, 0.5}, {}, 2, 4, 8 };
     REQUIRE(b.area() == Approx(112.f));
     REQUIRE(b.volume() == Approx(64.f));
 
