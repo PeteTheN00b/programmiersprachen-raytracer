@@ -13,6 +13,7 @@ struct HitPoint
 	Color objColor = {0.f, 0.f, 0.f}; //color of the object that was hit
 	glm::vec3 intersectPoint = { 0.f, 0.f, 0.f }; //point of intersection between object and ray
 	glm::vec3 rayDirection = { 0.f, 0.f, 1.f }; //direction the colliding ray was travelling in
+	glm::vec3 objNormal = { 0.f, 0.f, 1.f };
 };
 
 #endif
