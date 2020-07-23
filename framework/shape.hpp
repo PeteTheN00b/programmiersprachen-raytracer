@@ -4,6 +4,8 @@
 #include <string>
 
 #include "color.hpp"
+#include "ray.hpp"
+#include "hitpoint.hpp"
 
 class Shape
 {
@@ -15,7 +17,11 @@ public:
 	virtual float area() const = 0;
 	virtual float volume() const = 0;
 
+	virtual HitPoint intersect(Ray const& r) const = 0;
+
 	virtual std::ostream& print(std::ostream& os) const;
+
+	std::string getName() const;
 
 protected:
 	std::string name_;

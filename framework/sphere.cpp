@@ -26,7 +26,7 @@ float Sphere::volume() const
 	return 4.f / 3.f * M_PI * pow(radius_, 3);
 }
 
-HitPoint Sphere::intersect(Ray r) const
+HitPoint Sphere::intersect(Ray const& r) const
 {
 	HitPoint h;
 	glm::vec3 iNormal;
@@ -40,6 +40,9 @@ HitPoint Sphere::intersect(Ray r) const
 		h.objName = name_;
 		h.objColor = color_;
 		h.rayDirection = r.direction;
+
+		h.objNormal = h.intersectPoint - r.origin;
+		h.objNormal = glm::normalize(h.objNormal);
 	}
 
 	return h;

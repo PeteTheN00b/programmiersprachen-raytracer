@@ -16,6 +16,13 @@ float Box::volume() const
 	return length_ * width_ * height_;
 }
 
+HitPoint Box::intersect(Ray const& r) const
+{
+	HitPoint h;
+
+	return h;
+}
+
 std::ostream& Box::print(std::ostream& os) const
 {
 	Shape::print(os);

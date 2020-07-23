@@ -4,8 +4,6 @@
 #include <glm/vec3.hpp>
 
 #include "shape.hpp"
-#include "ray.hpp"
-#include "hitpoint.hpp"
 
 class Sphere : public Shape
 {
@@ -18,7 +16,7 @@ public:
 
 	std::ostream& print(std::ostream& os) const override;
 
-	HitPoint intersect(Ray r) const;
+	HitPoint intersect(Ray const& r) const override;
 
 protected:
 	glm::vec3 centre_;
