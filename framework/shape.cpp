@@ -1,8 +1,10 @@
 #include "shape.hpp"
 
-Shape::Shape(std::string name, Color color) :
+Shape::Shape(std::string name, Color color, float diffusive, float specular) :
 	name_{ name },
-	color_{ color } {std::cout << "Shape ctor" << std::endl; }
+	color_{ color },
+	diffusive_{diffusive},
+	specular_{specular} {std::cout << "Shape ctor" << std::endl; }
 
 Shape::~Shape()
 {

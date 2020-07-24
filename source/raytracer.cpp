@@ -26,10 +26,10 @@ int main(int argc, char* argv[])
   glm::vec3 const observerLoc{ 0.f, 0.f, 0.f };
 
   std::vector<Shape*> world;
-  world.push_back(new Sphere{ "Sphere1", Color{0.7f, 0.f, 0.2f}, {0.f, 0.f, -150.f}, 50 });
-  world.push_back(new Sphere{ "Sphere2", Color{0.7f, 0.1f, 0.9f}, {-20.f, -70.f, -150.f}, 80 });
-  world.push_back(new Box{ "Box1", Color{0.7f, 0.6f, 0.f}, {50, -140, -300}, 500, 20, 500});
-  world.push_back(new Box{ "Box1", Color{0.f, 0.9f, 0.8f}, {150, -120, -100}, 100, 40, 60 });
+  world.push_back(new Sphere{ "Sphere1", Color{0.7f, 0.f, 0.2f}, 0.f, 0.f, {0.f, 0.f, -150.f}, 50 });
+  world.push_back(new Sphere{ "Sphere2", Color{0.7f, 0.1f, 0.9f}, 0.f, 0.f, {-20.f, -70.f, -150.f}, 80 });
+  world.push_back(new Box{ "Box1", Color{0.7f, 0.6f, 0.f}, 0.f, 0.f, {50, -140, -300}, 500, 20, 500});
+  world.push_back(new Box{ "Box1", Color{0.f, 0.9f, 0.8f}, 0.f, 0.f, {150, -120, -100}, 100, 40, 60 });
 
   float const k_d = 0.7f; //diffusion reflectivity of all materials
   float const k_a = 0.5f; //reflectivity of ambient light

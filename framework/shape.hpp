@@ -10,7 +10,7 @@
 class Shape
 {
 public:
-	Shape(std::string name, Color color);
+	Shape(std::string name, Color color, float diffusive, float specular);
 	~Shape(); //if it is virtual, a shape pointer to a sphere object can call the destructor of a sphere, if it isn't it will only call the shape destructor
 		//more generally speaking, if a parent class' destructor is virtual, then a pointer to objects of said parent class' type, will first call the derived class' destructor when possible
 
@@ -26,6 +26,9 @@ public:
 protected:
 	std::string name_;
 	Color color_;
+
+	float diffusive_; //coefficient of diffusive reflection
+	float specular_; //coefficient of specular reflection
 };
 
 std::ostream& operator<<(std::ostream& os, Shape const& s);
