@@ -6,7 +6,7 @@
 #include <glm/gtx/intersect.hpp>
 
 
-Sphere::Sphere(std::string name, Color color, float diffusive, float specular, glm::vec3 centre, float radius) :
+Sphere::Sphere(std::string const& name, Color const& color, float diffusive, float specular, glm::vec3 const& centre, float radius) :
 	Shape(name, color, diffusive, specular),
 	centre_{centre},
 	radius_{radius} {std::cout << "Sphere ctor" << std::endl; }

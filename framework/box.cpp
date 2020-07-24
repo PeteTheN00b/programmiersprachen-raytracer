@@ -8,7 +8,7 @@
 #define rayPointY r.origin.y+r.direction.y*scalar
 #define rayPointZ r.origin.z+r.direction.z*scalar
 
-Box::Box(std::string name, Color color, float diffusive, float specular, glm::vec3 origin, float w, float h, float l) :
+Box::Box(std::string const& name, Color const& color, float diffusive, float specular, glm::vec3 const& origin, float w, float h, float l) :
 	Shape(name, color, diffusive, specular),
 	origin_{ origin },
 	height_{ h },

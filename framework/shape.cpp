@@ -1,6 +1,6 @@
 #include "shape.hpp"
 
-Shape::Shape(std::string name, Color color, float diffusive, float specular) :
+Shape::Shape(std::string const& name, Color const& color, float diffusive, float specular) :
 	name_{ name },
 	color_{ color },
 	diffusive_{diffusive},
