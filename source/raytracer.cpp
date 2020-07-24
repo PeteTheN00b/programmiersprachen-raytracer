@@ -28,14 +28,17 @@ int main(int argc, char* argv[])
   std::vector<Shape*> world;
   world.push_back(new Sphere{ "Sphere1", Color{0.7f, 0.f, 0.2f}, {0.f, 0.f, -150.f}, 50 });
   world.push_back(new Sphere{ "Sphere2", Color{0.7f, 0.1f, 0.9f}, {-20.f, -70.f, -150.f}, 80 });
+  world.push_back(new Box{ "Box1", Color{0.7f, 0.6f, 0.f}, {50, -140, -300}, 500, 20, 500});
+  world.push_back(new Box{ "Box1", Color{0.f, 0.9f, 0.8f}, {150, -120, -100}, 100, 40, 60 });
 
-  float const k_d = 0.f; //diffusion reflectivity of all materials
-  float const k_a = 0.f; //reflectivity of ambient light
-  float const I_a = 0.1f; //intensity of ambient light
-  float const k_s = 0.9f; //reflectivity of specular light for all materials
+  float const k_d = 0.7f; //diffusion reflectivity of all materials
+  float const k_a = 0.5f; //reflectivity of ambient light
+  float const I_a = 0.3f; //intensity of ambient light
+  float const k_s = 0.8f; //reflectivity of specular light for all materials
 
   std::vector<PointLight*> lights;
-  lights.push_back(new PointLight{ {300.f, 500.f, 0.f}, 0.5f });
+  lights.push_back(new PointLight{ {3000.f, 500.f, 0.f}, 1.f });
+  lights.push_back(new PointLight{ {-3000.f, 500.f, 0.f}, 0.5f });
 
   //This is how we write to the renderer
   for (unsigned int i = 0; i < image_width; i++)
@@ -76,7 +79,8 @@ int main(int argc, char* argv[])
 
                   for (Shape* s : world) //check whether or not our ray is obstructed by the light source
                   {
-                      if (s->getName() != closestHit.objName && s->intersect(Ray{ closestHit.intersectPoint, direction }).intersect)
+                      if (s->intersect(Ray{ closestHit.intersectPoint + closestHit.objNormal, direction }).intersect)
+                          //adding normal to make sure it doesn't re-intersect with the intersection point
                       {
                           notObstructed = 0;
                           break;
@@ -96,7 +100,7 @@ int main(int argc, char* argv[])
                   intensity += l->intensity * (k_d * (float)notObstructed * dotProduct1 + k_s * dotProduct2);
               }
 
-              if (intensity > 1) intensity = 1;
+              intensity /= (intensity + 1);
 
               pColor.r *= intensity;
               pColor.g *= intensity;
