@@ -105,6 +105,9 @@ void Box::intersectPlane(HitPoint& h, Ray const& r, Dim plane) const
 		h.objColor = color_;
 		h.objName = name_;
 		h.rayDirection = r.direction; //still not sure as to what this helps with
+
+		h.objDiffusion = diffusive_;
+		h.objSpecular = specular_;
 	}
 }
 

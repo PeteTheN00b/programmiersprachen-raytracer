@@ -14,6 +14,8 @@ struct HitPoint
 	glm::vec3 intersectPoint = { 0.f, 0.f, 0.f }; //point of intersection between object and ray
 	glm::vec3 rayDirection = { 0.f, 0.f, 1.f }; //direction the colliding ray was travelling in
 	glm::vec3 objNormal = { 0.f, 0.f, 1.f };
+	float objDiffusion = 0.f;
+	float objSpecular = 0.f;
 };
 
 #endif
