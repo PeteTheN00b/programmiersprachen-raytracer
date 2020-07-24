@@ -41,7 +41,7 @@ HitPoint Sphere::intersect(Ray const& r) const
 		h.objColor = color_;
 		h.rayDirection = r.direction;
 
-		h.objNormal = h.intersectPoint - r.origin;
+		h.objNormal = h.intersectPoint - centre_;
 		h.objNormal = glm::normalize(h.objNormal);
 	}
 
