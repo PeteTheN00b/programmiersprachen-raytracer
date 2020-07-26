@@ -6,8 +6,8 @@
 #include <glm/gtx/intersect.hpp>
 
 
-Sphere::Sphere(std::string const& name, Color const& color, float diffusive, float specular, glm::vec3 const& centre, float radius) :
-	Shape(name, color, diffusive, specular),
+Sphere::Sphere(std::string const& name, Material const& m, glm::vec3 const& centre, float radius) :
+	Shape(name, m),
 	centre_{centre},
 	radius_{radius} {std::cout << "Sphere ctor" << std::endl; }
 
@@ -38,11 +38,8 @@ HitPoint Sphere::intersect(Ray const& r) const
 
 		h.dist = sqrt(pow(distVec.x, 2) + pow(distVec.y, 2) + pow(distVec.z, 2));
 		h.objName = name_;
-		h.objColor = color_;
+		h.objMat = m_;
 		h.rayDirection = r.direction;
-
-		h.objDiffusion = diffusive_;
-		h.objSpecular = specular_;
 
 		h.objNormal = h.intersectPoint - centre_;
 		h.objNormal = glm::normalize(h.objNormal);

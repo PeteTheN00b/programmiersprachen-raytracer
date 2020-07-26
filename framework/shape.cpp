@@ -1,10 +1,8 @@
 #include "shape.hpp"
 
-Shape::Shape(std::string const& name, Color const& color, float diffusive, float specular) :
+Shape::Shape(std::string const& name, Material const& m) :
 	name_{ name },
-	color_{ color },
-	diffusive_{diffusive},
-	specular_{specular} {std::cout << "Shape ctor" << std::endl; }
+	m_{m} {std::cout << "Shape ctor" << std::endl; }
 
 Shape::~Shape()
 {
@@ -14,7 +12,7 @@ Shape::~Shape()
 std::ostream& Shape::print(std::ostream& os) const
 {
 	os << "Name: " << name_ << std::endl
-		<< "Color: " << color_;
+		<< "Color: " << m_.color;
 	return os;
 }
 

@@ -8,12 +8,12 @@
 #define rayPointY r.origin.y+r.direction.y*scalar
 #define rayPointZ r.origin.z+r.direction.z*scalar
 
-Box::Box(std::string const& name, Color const& color, float diffusive, float specular, glm::vec3 const& origin, float w, float h, float l) :
-	Shape(name, color, diffusive, specular),
+Box::Box(std::string const& name, Material const& m, glm::vec3 const& origin, float w, float h, float l) :
+	Shape(name, m),
 	origin_{ origin },
+	width_{ w },
 	height_{ h },
-	length_{ l },
-	width_{ w } {}
+	length_{ l } {}
 
 float Box::area() const
 {
@@ -102,12 +102,9 @@ void Box::intersectPlane(HitPoint& h, Ray const& r, Dim plane) const
 		h.dist = scalar;
 		h.intersect = true;
 		h.intersectPoint = { rayPointX, rayPointY, rayPointZ };
-		h.objColor = color_;
+		h.objMat = m_;
 		h.objName = name_;
 		h.rayDirection = r.direction; //still not sure as to what this helps with
-
-		h.objDiffusion = diffusive_;
-		h.objSpecular = specular_;
 	}
 }
 

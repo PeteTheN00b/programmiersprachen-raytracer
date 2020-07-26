@@ -8,7 +8,7 @@
 class Sphere : public Shape
 {
 public:
-	Sphere(std::string const& name, Color const& color, float diffusive, float specular, glm::vec3 const& centre, float radius);
+	Sphere(std::string const& name, Material const& m, glm::vec3 const& centre, float radius);
 	~Sphere();
 
 	float area() const override;

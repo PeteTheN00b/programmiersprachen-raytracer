@@ -16,7 +16,7 @@ enum class Dim
 class Box : public Shape
 {
 public:
-	Box(std::string const& name, Color const& color, float diffusive, float specular, glm::vec3 const& origin, float w, float h, float l);
+	Box(std::string const& name, Material const& m, glm::vec3 const& origin, float w, float h, float l);
 
 	float area() const override;
 	float volume() const override;
@@ -29,9 +29,9 @@ public:
 protected:
 	glm::vec3 origin_;
 
+	float width_; //x
 	float height_; //y
 	float length_; //z
-	float width_; //x
 };
 
 #endif
