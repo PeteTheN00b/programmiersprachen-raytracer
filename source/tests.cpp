@@ -28,100 +28,100 @@ TEST_CASE("intersect_ray_sphere", "[intersect]")
     REQUIRE(distance == Approx(4.0f));
 }
 
-TEST_CASE("intersect function")
-{
-    SECTION("Ray moves in the x direction, intersects sphere at the centre")
-    {
-        Ray r{ {0, 0, 0}, {1, 0, 0} };
-        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {50, 0, 0}, 1.f };
+//TEST_CASE("intersect function")
+//{
+//    SECTION("Ray moves in the x direction, intersects sphere at the centre")
+//    {
+//        Ray r{ {0, 0, 0}, {1, 0, 0} };
+//        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {50, 0, 0}, 1.f };
+//
+//        HitPoint h = s.intersect(r);
+//
+//        REQUIRE(h.intersect);
+//        REQUIRE(Approx(49.f) == h.dist);
+//        REQUIRE("TestSphere" == h.objName);
+//        REQUIRE(Approx(1.f) == h.objColor.r);
+//        REQUIRE((Approx(49.f) == h.intersectPoint.x && Approx(0.f) == h.intersectPoint.y && Approx(0.f) == h.intersectPoint.z));
+//        REQUIRE(h.rayDirection == r.direction);
+//    }
+//
+//    SECTION("Ray moves away from sphere, no intersection occurs")
+//    {
+//        Ray r{ {0, 0, 0}, {-1, 0, 0} };
+//        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {50, 0, 0}, 1.f };
+//
+//        HitPoint h = s.intersect(r);
+//
+//        REQUIRE(!h.intersect);
+//    }
+//
+//    SECTION("Ray intersects at tangent of sphere")
+//    {
+//        Ray r{ {0, 1, 0}, {1, 0, 0} };
+//        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {50, 0, 0}, 1.f };
+//
+//        HitPoint h = s.intersect(r);
+//
+//        REQUIRE(h.intersect);
+//        REQUIRE(Approx(50.f) == h.dist);
+//        REQUIRE((Approx(50.f) == h.intersectPoint.x && Approx(1.f) == h.intersectPoint.y && Approx(0.f) == h.intersectPoint.z));
+//    }
+//
+//    SECTION("Ray starts inside of sphere, appears to intersect at the circle's surface")
+//        //testing confirms peculiar interaction, an intersection is only detected on the outside of the circle, not on the inside
+//    {
+//
+//        Ray r{ {0, 0, 0}, {1, 0, 0} };
+//        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {0, 0, 0}, 5.f };
+//
+//        HitPoint h = s.intersect(r);
+//
+//        REQUIRE(h.intersect);
+//        REQUIRE(Approx(5.f) == h.dist);
+//    }
+//
+//    SECTION("Ray intersects with diagonal movement")
+//    {
+//        Ray r{ {0, 0, 0}, {1, 2, 3} };
+//        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {3, 6, 9}, 2.0f };
+//
+//        HitPoint h = s.intersect(r);
+//
+//        REQUIRE(h.intersect);
+//    }
+//}
 
-        HitPoint h = s.intersect(r);
-
-        REQUIRE(h.intersect);
-        REQUIRE(Approx(49.f) == h.dist);
-        REQUIRE("TestSphere" == h.objName);
-        REQUIRE(Approx(1.f) == h.objColor.r);
-        REQUIRE((Approx(49.f) == h.intersectPoint.x && Approx(0.f) == h.intersectPoint.y && Approx(0.f) == h.intersectPoint.z));
-        REQUIRE(h.rayDirection == r.direction);
-    }
-
-    SECTION("Ray moves away from sphere, no intersection occurs")
-    {
-        Ray r{ {0, 0, 0}, {-1, 0, 0} };
-        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {50, 0, 0}, 1.f };
-
-        HitPoint h = s.intersect(r);
-
-        REQUIRE(!h.intersect);
-    }
-
-    SECTION("Ray intersects at tangent of sphere")
-    {
-        Ray r{ {0, 1, 0}, {1, 0, 0} };
-        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {50, 0, 0}, 1.f };
-
-        HitPoint h = s.intersect(r);
-
-        REQUIRE(h.intersect);
-        REQUIRE(Approx(50.f) == h.dist);
-        REQUIRE((Approx(50.f) == h.intersectPoint.x && Approx(1.f) == h.intersectPoint.y && Approx(0.f) == h.intersectPoint.z));
-    }
-
-    SECTION("Ray starts inside of sphere, appears to intersect at the circle's surface")
-        //testing confirms peculiar interaction, an intersection is only detected on the outside of the circle, not on the inside
-    {
-
-        Ray r{ {0, 0, 0}, {1, 0, 0} };
-        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {0, 0, 0}, 5.f };
-
-        HitPoint h = s.intersect(r);
-
-        REQUIRE(h.intersect);
-        REQUIRE(Approx(5.f) == h.dist);
-    }
-
-    SECTION("Ray intersects with diagonal movement")
-    {
-        Ray r{ {0, 0, 0}, {1, 2, 3} };
-        Sphere s{ "TestSphere", {1, 0, 0}, 0.f, 0.f, {3, 6, 9}, 2.0f };
-
-        HitPoint h = s.intersect(r);
-
-        REQUIRE(h.intersect);
-    }
-}
-
-TEST_CASE("Sphere area and volume functions")
-{
-    Sphere s{ "MySphere", {1, 0, 0}, 0.f, 0.f, {0, 0, 0}, 5 }; //sphere with centre at origin and radius of 5
-    REQUIRE(s.area() == Approx(25. * 4. * M_PI));
-    REQUIRE(s.volume() == Approx(125. * 4. / 3. * M_PI));
-
-    s.print(std::cout);
-}
-
-TEST_CASE("Box area and volume functions")
-{
-    Box b{ "MyBox", {0, 1, 0.5}, 0.f, 0.f, {}, 2, 4, 8 };
-    REQUIRE(b.area() == Approx(112.f));
-    REQUIRE(b.volume() == Approx(64.f));
-
-    b.print(std::cout);
-}
-
-TEST_CASE("Constructor and destructor tests")
-{
-    std::cout << std::endl << "Constructor and destructor tests: " << std::endl << std::endl;
-
-    Color red{ 255, 0, 0 };
-    glm::vec3 position{ 0.0f, 0.0f, 0.0f };
-    Sphere* s1 = new Sphere{ "sphere0", red, 0.f, 0.f, position, 1.2f };
-    Shape* s2 = new Sphere{ "sphere1", red, 0.f, 0.f, position, 1.2f };
-    s1->print(std::cout);
-    s2->print(std::cout);
-    delete s1;
-    delete s2;
-}
+//TEST_CASE("Sphere area and volume functions")
+//{
+//    Sphere s{ "MySphere", {1, 0, 0}, 0.f, 0.f, {0, 0, 0}, 5 }; //sphere with centre at origin and radius of 5
+//    REQUIRE(s.area() == Approx(25. * 4. * M_PI));
+//    REQUIRE(s.volume() == Approx(125. * 4. / 3. * M_PI));
+//
+//    s.print(std::cout);
+//}
+//
+//TEST_CASE("Box area and volume functions")
+//{
+//    Box b{ "MyBox", {0, 1, 0.5}, 0.f, 0.f, {}, 2, 4, 8 };
+//    REQUIRE(b.area() == Approx(112.f));
+//    REQUIRE(b.volume() == Approx(64.f));
+//
+//    b.print(std::cout);
+//}
+//
+//TEST_CASE("Constructor and destructor tests")
+//{
+//    std::cout << std::endl << "Constructor and destructor tests: " << std::endl << std::endl;
+//
+//    Color red{ 255, 0, 0 };
+//    glm::vec3 position{ 0.0f, 0.0f, 0.0f };
+//    Sphere* s1 = new Sphere{ "sphere0", red, 0.f, 0.f, position, 1.2f };
+//    Shape* s2 = new Sphere{ "sphere1", red, 0.f, 0.f, position, 1.2f };
+//    s1->print(std::cout);
+//    s2->print(std::cout);
+//    delete s1;
+//    delete s2;
+//}
 
 int main(int argc, char *argv[])
 {
