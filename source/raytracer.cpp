@@ -5,8 +5,12 @@
 #include <thread>
 #include <utility>
 #include <cmath>
+#include <sstream>
 #include <fstream>
 #include <iostream>
+
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "shape.hpp"
 #include "sphere.hpp"
@@ -15,11 +19,25 @@
 #include "material.hpp"
 #include "world.hpp"
 
-float nextFloatFromString(size_t & i, size_t & nextSpace, std::string const& str) //function used in file reading to act similar to a delimiter for the purpose of finding new floats
+float nextFloatFromString(size_t & i, std::string const& str) //function used in file reading to act similar to a delimiter for the purpose of finding new floats
 {
-    for (nextSpace = i + 1; nextSpace < str.size() && " " == &str.at(nextSpace); nextSpace++);
-    float f = stof(str.substr(i, nextSpace - 1));
-    i = nextSpace;
+    size_t nextSpace;
+
+    if (i >= str.size()) return 0.f;
+
+    while (' ' == str.at(i))
+    {
+        ++i;
+
+        if (i >= str.size()) return 0.f;
+    }
+
+    for (nextSpace = 0; i + nextSpace < str.size() && ' ' != str.at(i + nextSpace); ++nextSpace) std::cout << str.at(i + nextSpace) << std::endl;
+
+    float f = stof(str.substr(i, nextSpace));
+    i += nextSpace + 1;
+
+    std::cout << std::endl;
 
     return f;
 }
@@ -40,123 +58,199 @@ int main(int argc, char* argv[])
 
 
   World world{};
-  //world.createMaterial("Red", { 0.7f, 0.f, 0.2f }, 0.3f, 0.8f, 0.2f);
-  //world.createMaterial("Purple", { 0.7f, 0.1f, 0.9f }, 0.3f, 0.3f, 0.9f);
-  //world.createMaterial("Table", { 0.7f, 0.6f, 0.f }, 0.3f, 0.7f, 1.f);
-  //world.createMaterial("Cyan", { 0.f, 0.9f, 0.8f }, 0.3f, 1.f, 0.5f);
+  /*world.createMaterial("Red", { 0.7f, 0.f, 0.2f }, 0.3f, 0.8f, 0.2f);
+  world.createMaterial("Purple", { 0.7f, 0.1f, 0.9f }, 0.3f, 0.3f, 0.9f);
+  world.createMaterial("Table", { 0.7f, 0.6f, 0.f }, 0.3f, 0.7f, 1.f);
+  world.createMaterial("Cyan", { 0.f, 0.9f, 0.8f }, 0.3f, 1.f, 0.5f);
 
-  ////world.createSphere("Red", { 0.f, 0.f, -150.f }, 50.f);
-  //world.createSphere("Purple", { /*-20.f*/0.f, -70.f, -150.f }, 80.f);
+  world.createSphere("Red", { 0.f, 0.f, -150.f }, 50.f);
+  world.createSphere("Purple", { -20.f, -70.f, -150.f }, 80.f);
 
-  //world.createBox("Table", { 0.f, -140.f, -300.f }, 500.f, 20.f, 500.f);
-  ////world.createBox("Cyan", { 150.f, -120.f, -100.f }, 100.f, 40.f, 60.f);
+  world.createBox("Table", { 0.f, -140.f, -300.f }, 500.f, 20.f, 500.f);
+  world.createBox("Cyan", { 150.f, -120.f, -100.f }, 100.f, 40.f, 60.f);*/
 
-  //world.createLight({ 3000.f, 500.f, -150.f }, 1.f);
-  //world.createLight({ -3000.f, 500.f, -150.f }, 1.f);
+  /*world.createLight({ 3000.f, 500.f, -150.f }, 1.f);
+  world.createLight({ -3000.f, 500.f, -150.f }, 1.f);*/
 
   std::ifstream freader;
   freader.open("scene.sdf", std::ios::in);
   std::string sdf_contents;
+
   while (getline(freader, sdf_contents))
-      //Notes for tomorrow : material reads the first 2 or 3 floats as part of the name
-      //z for spheres doesn't initialize properly
-      //boxes don't initialize properly
-      //lights have proper x, but improper y and z
   {
-      size_t i = 0; //index for what we are looking at in our string
+      std::istringstream in_sstream(sdf_contents);
+      std::string identifier;
+      in_sstream >> identifier;
 
-      if (i + 7 < sdf_contents.size() && "define " == sdf_contents.substr(i, 7)) //space is also a symbol
+      if ("define" == identifier)
       {
-          i += 7;
+          in_sstream >> identifier;
 
-          if (i + 9 < sdf_contents.size() && "material " == sdf_contents.substr(i, 9)) //format: define material red 1 0 0 1 0 0 1 0 0 1
+          if ("material" == identifier)
           {
-              i += 9;
+              std::string matName;
+              float colorR, colorG, colorB, ambient, diffusive, specular;
 
-              size_t nextSpace;
-              for (nextSpace = i; nextSpace < sdf_contents.size() && " " == &sdf_contents.at(nextSpace); nextSpace++); //kind of like a delimiter, find the next space in our string
-
-              std::string matName = sdf_contents.substr(i, nextSpace - 1);
-
-              i += nextSpace;
-
-
-              //gotta change this later, my diffusive properties don't contain colors, only intensity, the color is separate
-              float colorR = nextFloatFromString(i, nextSpace, sdf_contents);
-              float colorG = nextFloatFromString(i, nextSpace, sdf_contents);
-              float colorB = nextFloatFromString(i, nextSpace, sdf_contents);
-              float ambient = nextFloatFromString(i, nextSpace, sdf_contents);
-              float diffusive = nextFloatFromString(i, nextSpace, sdf_contents);
-              float specular = nextFloatFromString(i, nextSpace, sdf_contents);
+              in_sstream >> matName >> colorR >> colorG >> colorB >> ambient >> diffusive >> specular;
 
               world.createMaterial(matName, { colorR, colorG, colorB }, ambient, diffusive, specular);
           }
-          else if (i + 6 < sdf_contents.size() && "shape " == sdf_contents.substr(i, 6))
+          else if("shape" == identifier)
           {
-              i += 6;
+              in_sstream >> identifier;
 
-              if (i + 4 < sdf_contents.size() && "box " == sdf_contents.substr(i, 4))
+              if ("box" == identifier)
               {
-                  i += 4;
-                  size_t nextSpace = i;
+                  glm::vec3 p1, p2;
+                  std::string matName;
 
-                  float p1x = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float p1y = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float p1z = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float p2x = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float p2y = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float p2z = nextFloatFromString(i, nextSpace, sdf_contents);
+                  in_sstream >> p1.x >> p1.y >> p1.z >> p2.x >> p2.y >> p2.z >> matName;
 
-                  glm::vec3 p1{ p1x, p1y, p1z };
-                  glm::vec3 p2{ p2x, p2y, p2z };
-
-                  for (nextSpace = i; nextSpace < sdf_contents.size() && " " == &sdf_contents.at(nextSpace); nextSpace++); //kind of like a delimiter, find the next space in our string
-
-                  std::string matName = sdf_contents.substr(i, nextSpace - 1);
-
-                  i += nextSpace;
-
-                  world.createBox(matName, p1 / 2.f + p2 / 2.f, abs(p2x - p1x) / 2.f, abs(p2y - p1y) / 2.f, abs(p2z - p1z) / 2.f);
+                  world.createBox(matName, p1 / 2.f + p2 / 2.f, abs(p2.x - p1.x) / 2.f, abs(p2.y - p1.y) / 2.f, abs(p2.z - p1.z) / 2.f);
               }
-              else if (i + 7 < sdf_contents.size() && "sphere " == sdf_contents.substr(i, 7))
+              else if ("sphere" == identifier)
               {
-                  i += 7;
-                  size_t nextSpace = i;
+                  glm::vec3 p;
+                  float r;
+                  std::string matName;
 
-                  float px = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float py = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float pz = nextFloatFromString(i, nextSpace, sdf_contents);
-                  float r = nextFloatFromString(i, nextSpace, sdf_contents);
-
-                  glm::vec3 p{ px, py, pz };
-
-                  for (nextSpace = i; nextSpace < sdf_contents.size() && " " == &sdf_contents.at(nextSpace); nextSpace++); //kind of like a delimiter, find the next space in our string
-
-                  std::string matName = sdf_contents.substr(i, nextSpace - 1);
-
-                  i += nextSpace;
+                  in_sstream >> p.x >> p.y >> p.z >> r >> matName;
 
                   world.createSphere(matName, p, r);
               }
+
           }
-          else if (i + 6 < sdf_contents.size() && "light " == sdf_contents.substr(i, 6)) //add color later
+          else if ("light" == identifier)
           {
-              i += 6;
-              size_t nextSpace = i;
+              glm::vec3 p;
+              float intensity;
 
-              float px = nextFloatFromString(i, nextSpace, sdf_contents);
-              float py = nextFloatFromString(i, nextSpace, sdf_contents);
-              float pz = nextFloatFromString(i, nextSpace, sdf_contents);
-              float intensity = nextFloatFromString(i, nextSpace, sdf_contents);
-
-              glm::vec3 p{ px, py, pz };
+              in_sstream >> p.x >> p.y >> p.z >> intensity;
 
               world.createLight(p, intensity);
           }
       }
-
-      std::cout << sdf_contents << std::endl;
   }
+
+  //while (getline(freader, sdf_contents))
+  //    //Notes for tomorrow : material reads the first 2 or 3 floats as part of the name
+  //    //z for spheres doesn't initialize properly
+  //    //boxes don't initialize properly
+  //    //lights have proper x, but improper y and z
+  //{
+  //    size_t i = 0; //index for what we are looking at in our string
+
+  //    if (sdf_contents.size() == 0 || '#' == sdf_contents[0] || '\n' == sdf_contents[0])
+  //        continue;
+
+  //    if (i + 7 < sdf_contents.size() && "define " == sdf_contents.substr(i, 7)) //space is also a symbol
+  //    {
+  //        i += 7;
+
+  //        if (i + 9 < sdf_contents.size() && "material " == sdf_contents.substr(i, 9)) //format: define material red 1 0 0 1 0 0 1 0 0 1
+  //        {
+  //            i += 9;
+
+  //            size_t nextSpace;
+
+  //            for (nextSpace = i; nextSpace < sdf_contents.size() && ' ' != sdf_contents.at(nextSpace); nextSpace++); //kind of like a delimiter, find the next space in our string
+  //                //std::cout << (int)sdf_contents.at(nextSpace) << std::endl;
+
+  //            std::string matName = sdf_contents.substr(i, nextSpace - i);
+
+  //            i = nextSpace;
+
+  //            //gotta change this later, my diffusive properties don't contain colors, only intensity, the color is separate
+  //            float colorR = nextFloatFromString(i, sdf_contents);
+  //            float colorG = nextFloatFromString(i, sdf_contents);
+  //            float colorB = nextFloatFromString(i, sdf_contents);
+  //            float ambient = nextFloatFromString(i, sdf_contents);
+  //            float diffusive = nextFloatFromString(i, sdf_contents);
+  //            float specular = nextFloatFromString(i, sdf_contents);
+
+  //            world.createMaterial(matName, { colorR, colorG, colorB }, ambient, diffusive, specular);
+  //        }
+  //        else if (i + 6 < sdf_contents.size() && "shape " == sdf_contents.substr(i, 6))
+  //        {
+  //            i += 6;
+
+  //            if (i + 4 < sdf_contents.size() && "box " == sdf_contents.substr(i, 4))
+  //            {
+  //                i += 4; //most have to be 1 less, as functions often skip the first given symbol, might be a problem
+
+  //                float p1x = nextFloatFromString(i, sdf_contents);
+  //                float p1y = nextFloatFromString(i, sdf_contents);
+  //                float p1z = nextFloatFromString(i, sdf_contents);
+  //                float p2x = nextFloatFromString(i, sdf_contents);
+  //                float p2y = nextFloatFromString(i, sdf_contents);
+  //                float p2z = nextFloatFromString(i, sdf_contents);
+
+  //                glm::vec3 p1{ p1x, p1y, p1z };
+  //                glm::vec3 p2{ p2x, p2y, p2z };
+
+
+  //                while (' ' == sdf_contents.at(i))
+  //                {
+  //                    ++i;
+
+  //                    if (i >= sdf_contents.size()) return 0.f;
+  //                }
+
+  //                size_t nextSpace;
+  //                for (nextSpace = 0; i + nextSpace < sdf_contents.size() && ' ' != sdf_contents.at(i + nextSpace); ++nextSpace); //kind of like a delimiter, find the next space in our string
+
+  //                std::string matName = sdf_contents.substr(i, i + nextSpace);
+
+  //                i += nextSpace;
+
+  //                world.createBox(matName, p1 / 2.f + p2 / 2.f, abs(p2x - p1x) / 2.f, abs(p2y - p1y) / 2.f, abs(p2z - p1z) / 2.f);
+  //            }
+  //            else if (i + 7 < sdf_contents.size() && "sphere " == sdf_contents.substr(i, 7))
+  //            {
+  //                i += 7;
+
+  //                float px = nextFloatFromString(i, sdf_contents);
+  //                float py = nextFloatFromString(i, sdf_contents);
+  //                float pz = nextFloatFromString(i, sdf_contents);
+  //                float r = nextFloatFromString(i, sdf_contents);
+
+  //                glm::vec3 p{ px, py, pz };
+
+
+  //                while (' ' == sdf_contents.at(i))
+  //                {
+  //                    ++i;
+
+  //                    if (i >= sdf_contents.size()) return 0.f;
+  //                }
+
+  //                size_t nextSpace;
+  //                for (nextSpace = 0; i + nextSpace < sdf_contents.size() && ' ' != sdf_contents.at(i + nextSpace); ++nextSpace); //kind of like a delimiter, find the next space in our string
+
+  //                std::string matName = sdf_contents.substr(i, nextSpace);
+
+  //                i += nextSpace;
+
+  //                world.createSphere(matName, p, r);
+  //            }
+  //        }
+  //        else if (i + 6 < sdf_contents.size() && "light " == sdf_contents.substr(i, 6)) //add color later
+  //        {
+  //            i += 6;
+
+  //            float px = nextFloatFromString(i, sdf_contents);
+  //            float py = nextFloatFromString(i, sdf_contents);
+  //            float pz = nextFloatFromString(i, sdf_contents);
+  //            float intensity = nextFloatFromString(i, sdf_contents);
+
+  //            glm::vec3 p{ px, py, pz };
+
+  //            world.createLight(p, intensity);
+  //        }
+  //    }
+
+  //    std::cout << sdf_contents << std::endl;
+  //}
 
   freader.close();
 
@@ -172,7 +266,13 @@ int main(int argc, char* argv[])
 
           for (std::shared_ptr<Shape> s : world.getShapes())
           {
-              glm::vec3 direction{ (float)i - (float)image_width / 2.f, (float)j - (float)image_height / 2.f, -100.f };
+              //use field of view angle from filereading to determine min / max ratio between (x and z) / (y and z) coordinates (45 degrees is a 1 : 1 ratio)
+              float const maxAngle = 80.f;
+              glm::vec3 direction{
+                  ((float)i / (float)image_width - 0.5f) * 2 * (float)tan(maxAngle / 180.f * M_PI),
+                  /*(float)j - (float)image_height / 2.f*/
+                  ((float)j / (float)image_width - 0.5f) * 2 * (float)tan(maxAngle / 180.f * M_PI),
+                  -1.f };
               direction = glm::normalize(direction);
 
               HitPoint h = s.get()->intersect(Ray{ observerLoc,  direction});
