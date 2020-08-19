@@ -55,6 +55,8 @@ int main(int argc, char* argv[])
 
   while (getline(freader, sdf_contents))
   {
+      if (sdf_contents.size() == 0 || '#' == sdf_contents.at(0)) continue;
+
       std::istringstream in_sstream(sdf_contents);
       std::string identifier;
       in_sstream >> identifier;
