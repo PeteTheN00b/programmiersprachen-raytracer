@@ -28,12 +28,6 @@ protected:
 	std::string name_;
 
 	Material m_;
-
-	//Color color_;
-
-	//float ambient_;
-	//float diffusive_; //coefficient of diffusive reflection
-	//float specular_; //coefficient of specular reflection
 };
 
 std::ostream& operator<<(std::ostream& os, Shape const& s);

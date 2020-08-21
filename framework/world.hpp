@@ -14,7 +14,7 @@ class World
 public:
 	World();
 
-	void createMaterial(std::string const& matName, Color const& color, float ambient, float diffusive, float specular);
+	void createMaterial(std::string const& matName, Color const& ambient, Color const& diffusive, Color const& specular, int specularExp);
 	std::shared_ptr<Material> findMat(std::string const& matName) const;
 
 	void createSphere(std::string const& matName, glm::vec3 const& centre, float radius);

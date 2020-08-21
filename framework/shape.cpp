@@ -12,7 +12,9 @@ Shape::~Shape()
 std::ostream& Shape::print(std::ostream& os) const
 {
 	os << "Name: " << name_ << std::endl
-		<< "Color: " << m_.color;
+		<< "Ambient Color: " << m_.ambient << std::endl
+		<< "Diffusive Color: " << m_.diffusive<< std::endl
+		<< "Specular Color: " << m_.specular << ", " << m_.specularExp << std::endl;
 	return os;
 }
 
