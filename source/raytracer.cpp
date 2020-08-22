@@ -26,6 +26,11 @@ Color operator*(Color const& color, float f) //the color struct that was given d
     return { color.r * f, color.g * f, color.b * f };
 }
 
+Color operator*(Color const& color, Color const& color2) //the color struct that was given didn't have an overload for multiplication, so I made one here
+{
+    return { color.r * color2.r, color.g * color2.g, color.b * color2.b };
+}
+
 Color operator*=(Color& color, float f)
 {
     color = color * f;
@@ -123,11 +128,12 @@ int main(int argc, char* argv[])
           else if ("light" == identifier)
           {
               glm::vec3 p;
+              Color color;
               float intensity;
 
-              in_sstream >> p.x >> p.y >> p.z >> intensity;
+              in_sstream >> p.x >> p.y >> p.z >> color.r >> color.g >> color.b >> intensity;
 
-              world.createLight(p, intensity);
+              world.createLight(p, color, intensity);
           }
       }
   }
@@ -219,7 +225,10 @@ int main(int argc, char* argv[])
                       reverseOrigin = glm::normalize(reverseOrigin);
 
                       float dotProduct2 = pow(abs(glm::dot<float>(reflectedLightDirection, reverseOrigin)), closestHit.objMat.specularExp);
-                      pColor += (closestHit.objMat.diffusive * (float)notObstructed * dotProduct1 + closestHit.objMat.specular * pow(dotProduct2, closestHit.objMat.specularExp)) * l.get()->intensity;
+                     // if (dotProduct2 < 0.f) dotProduct2 = 0.f;
+
+                      pColor += (closestHit.objMat.diffusive * (float)notObstructed * dotProduct1 + closestHit.objMat.specular * pow(dotProduct2, closestHit.objMat.specularExp)) 
+                          * l.get()->color * l.get()->intensity;
                   }
               }
 

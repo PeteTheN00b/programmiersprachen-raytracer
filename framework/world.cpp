@@ -49,10 +49,10 @@ void World::createBox(std::string const& matName, glm::vec3 const& origin, float
 	boxCount_++;
 }
 
-void World::createLight(glm::vec3 const& origin, float intensity)
+void World::createLight(glm::vec3 const& origin, Color color, float intensity)
 {
 	lights_.push_back(std::make_shared<PointLight>(
-		PointLight{origin, intensity}));
+		PointLight{origin, color, intensity}));
 }
 
 std::vector<std::shared_ptr<Shape>> World::getShapes()
