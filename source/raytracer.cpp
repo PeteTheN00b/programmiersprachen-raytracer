@@ -204,14 +204,21 @@ int main(int argc, char* argv[])
                       float dotProduct1 = glm::dot<float>(closestHit.objNormal, direction);
                       if (dotProduct1 < 0.f) dotProduct1 = 0.f;
 
-                      glm::vec3 reflectedLightDirection = closestHit.intersectPoint + closestHit.objNormal - l.get()->origin;
-                      reflectedLightDirection *= 2;
-                      reflectedLightDirection -= closestHit.intersectPoint;
+
+                      glm::vec3 lightDirection = closestHit.intersectPoint + closestHit.objNormal - l.get()->origin;
+
+                      glm::vec4 lightDir4{ lightDirection.x, lightDirection.y, lightDirection.z, 0.f };
+                      glm::vec3 rotAxis = closestHit.objNormal;
+                      glm::mat4 rotMat = glm::rotate((float)M_PI, rotAxis); //rotate 180 degrees around the normal
+                      glm::vec4 reflectedLightDir4 = -lightDir4 * rotMat;
+
+                      glm::vec3 reflectedLightDirection{ reflectedLightDir4.w, reflectedLightDir4.x, reflectedLightDir4.y };
                       reflectedLightDirection = glm::normalize(reflectedLightDirection);
 
                       glm::vec3 reverseOrigin = origin - closestHit.intersectPoint;
                       reverseOrigin = glm::normalize(reverseOrigin);
-                      float dotProduct2 = pow(abs(glm::dot<float>(reflectedLightDirection, reverseOrigin)), 5);
+
+                      float dotProduct2 = pow(abs(glm::dot<float>(reflectedLightDirection, reverseOrigin)), closestHit.objMat.specularExp);
                       pColor += (closestHit.objMat.diffusive * (float)notObstructed * dotProduct1 + closestHit.objMat.specular * pow(dotProduct2, closestHit.objMat.specularExp)) * l.get()->intensity;
                   }
               }
