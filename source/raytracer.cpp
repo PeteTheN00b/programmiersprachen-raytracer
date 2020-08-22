@@ -201,7 +201,8 @@ int main(int argc, char* argv[])
                           }
                       }
 
-                      float dotProduct1 = abs(glm::dot<float>(closestHit.objNormal, direction));
+                      float dotProduct1 = glm::dot<float>(closestHit.objNormal, direction);
+                      if (dotProduct1 < 0.f) dotProduct1 = 0.f;
 
                       glm::vec3 reflectedLightDirection = closestHit.intersectPoint + closestHit.objNormal - l.get()->origin;
                       reflectedLightDirection *= 2;
