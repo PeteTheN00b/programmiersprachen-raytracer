@@ -11,6 +11,8 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <functional>
+#include <glm/gtx/transform.hpp> //used to create basic rotation matrices
 
 #include "shape.hpp"
 #include "sphere.hpp"
@@ -44,6 +46,7 @@ int main(int argc, char* argv[])
   renderer.render();
 
   Color const bgColor{0.1f, 0.4f, 0.2f}; //background color
+  glm::vec3 const observerLoc{ 0.f, 0.f, 0.f };
 
 
   World world{};
@@ -153,9 +156,13 @@ int main(int argc, char* argv[])
 
           glm::vec3 direction = x * right + y * up + dir;
 
-          glm::vec3 const origin{ 0.f, 0.f, 0.f };
+          glm::vec3 origin = observerLoc;
 
-          //convert below into recursive function
+          int reflectionCount = 0;
+          int maxReflectionCount = 0;
+
+          //lambda for lighting using reflections (had to use std::function because you can't initialize a lambda recursively)
+          std::function<void()> lighting = [&]()
           {
               HitPoint closestHit;
 
@@ -174,7 +181,8 @@ int main(int argc, char* argv[])
               //if an object was intersected we use that instead
               if (closestHit.intersect)
               {
-                  pColor = closestHit.objMat.ambient * ambientIntensity;
+                  if (0 == reflectionCount) pColor = { 0.f, 0.f, 0.f };
+                  pColor += closestHit.objMat.ambient * ambientIntensity;
 
                   for (std::shared_ptr<PointLight> l : world.getLights())
                   {
@@ -205,12 +213,32 @@ int main(int argc, char* argv[])
                       float dotProduct2 = pow(abs(glm::dot<float>(reflectedLightDirection, reverseOrigin)), 5);
                       pColor += (closestHit.objMat.diffusive * (float)notObstructed * dotProduct1 + closestHit.objMat.specular * pow(dotProduct2, closestHit.objMat.specularExp)) * l.get()->intensity;
                   }
-
-                  pColor.r /= (pColor.r + 1.f);
-                  pColor.g /= (pColor.g + 1.f);
-                  pColor.b /= (pColor.b + 1.f);
               }
-          }
+
+              //preparation for reflection
+              origin = closestHit.intersectPoint; //shift origin
+
+              //Thanks to https://stackoverflow.com/questions/34366655/glm-make-rotation-matrix-from-vec3 for providing basic instructions on creating rotation matrices
+              glm::vec3 rotAxis = glm::cross(closestHit.objNormal, direction);
+              float rotAngle = acos(glm::dot(closestHit.objNormal, direction) / (glm::length(closestHit.objNormal) * glm::length(direction)));
+              glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
+              glm::vec4 direction4{ direction.x, direction.y, direction.z, 0.f };
+
+              glm::vec4 newDir4 = direction4 * rotMat;
+              direction = { newDir4.w, newDir4.x, newDir4.y}; //reflect direction
+
+              if (closestHit.intersect && reflectionCount < maxReflectionCount)
+              {
+                  ++reflectionCount;
+                  lighting();
+              }
+          };
+
+          lighting();
+
+          pColor.r /= (pColor.r + 1.f);
+          pColor.g /= (pColor.g + 1.f);
+          pColor.b /= (pColor.b + 1.f);
 
           Pixel p{ i, j, pColor };
           renderer.write(p);
