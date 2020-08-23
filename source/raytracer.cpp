@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
                       glm::mat4 rotMat = glm::rotate((float)M_PI, rotAxis); //rotate 180 degrees around the normal
                       glm::vec4 reflectedLightDir4 = -lightDir4 * rotMat;
 
-                      glm::vec3 reflectedLightDirection{ reflectedLightDir4.w, reflectedLightDir4.x, reflectedLightDir4.y };
+                      glm::vec3 reflectedLightDirection{reflectedLightDir4};
                       reflectedLightDirection = glm::normalize(reflectedLightDirection);
 
                       glm::vec3 reverseOrigin = origin - closestHit.intersectPoint;
@@ -247,7 +247,7 @@ int main(int argc, char* argv[])
 
               //Recursive Reflection if necessary
               if (closestHit.intersect && //only reflect if a hit occurred (technically unnecessary because we return if no intersection occurred, moreso here for clarity, might delete later)
-                  reflectivity > 0.001f && //only reflect when necessary
+                  closestHit.objMat.reflectivity > 0.001f && //only reflect when necessary
                   reflectionCount < maxReflectionCount) //prevent infinite loops between reflective surfaces
               {
                   //preparation for reflection
@@ -256,8 +256,8 @@ int main(int argc, char* argv[])
                   glm::mat4 rotMat = glm::rotate((float)M_PI, closestHit.objNormal);
                   glm::vec4 direction4{ direction.x, direction.y, direction.z, 0.f };
 
-                  glm::vec4 newDir4 = direction4 * rotMat;
-                  direction = { newDir4.w, newDir4.x, newDir4.y }; //reflect direction
+                  glm::vec4 newDir4 = -direction4 * rotMat;
+                  direction = glm::vec3{ newDir4 }; //reflect direction
 
                   ++reflectionCount;
                   lighting(closestHit.objMat.reflectivity);
