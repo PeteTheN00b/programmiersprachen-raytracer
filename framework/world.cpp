@@ -8,10 +8,10 @@ World::World() :
 	sphereCount_{0},
 	boxCount_{0} {}
 
-void World::createMaterial(std::string const& matName, Color const& ambient, Color const& diffusive, Color const& specular, int specularExp)
+void World::createMaterial(std::string const& matName, Color const& ambient, Color const& diffusive, Color const& specular, int specularExp, float reflectivity)
 {
 	//mats_.emplace(matName, std::make_shared<Material>(Material{ ambient, diffusive, specular, specularExp }));
-	mats_[matName] = std::make_shared<Material>(Material{ ambient, diffusive, specular, specularExp });
+	mats_[matName] = std::make_shared<Material>(Material{ ambient, diffusive, specular, specularExp, reflectivity });
 }
 
 std::shared_ptr<Material> World::findMat(std::string const& matName) const

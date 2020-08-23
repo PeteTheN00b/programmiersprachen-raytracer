@@ -9,6 +9,8 @@ struct Material
 	Color diffusive;
 	Color specular;
 	int specularExp;
+
+	float reflectivity; //multiplier to reflect
 };
 
 #endif
