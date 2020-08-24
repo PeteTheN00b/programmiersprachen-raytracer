@@ -90,7 +90,8 @@ int main(int argc, char* argv[])
               std::string matName;
               Color ambient, diffusive, specular;
               int specularExp;
-              float reflectivity;
+              float reflectivity, 
+                  refractivity, refractiveIndex; //refractivity of 0 is no refraction, refractivity of 1 means we don't display the object itself, only what is refracted behind it
 
               in_sstream >> 
               matName >> 
@@ -98,9 +99,12 @@ int main(int argc, char* argv[])
               diffusive.r >> diffusive.g >> diffusive.b >> 
               specular.r >> specular.g >> specular.b >> 
               specularExp >>
-              reflectivity;
+              reflectivity >>
+              refractivity >> refractiveIndex;
 
-              world.createMaterial(matName, ambient, diffusive, specular, specularExp, reflectivity);
+              world.createMaterial(matName, ambient, diffusive, specular, specularExp, 
+                  reflectivity, 
+                  refractivity, refractiveIndex);
           }
           else if("shape" == identifier)
           {
@@ -163,22 +167,22 @@ int main(int argc, char* argv[])
           glm::vec3 const right = glm::cross(dir, up); //x direction
 
           glm::vec3 direction = x * right + y * up + dir;
+          direction = glm::normalize(direction);
 
           glm::vec3 origin = observerLoc;
 
           int reflectionCount = 0;
           int maxReflectionCount = 10;
+          int refractionCount = 0;
 
           //lambda for lighting using reflections (had to use std::function because you can't initialize a lambda recursively)
-          std::function<void(float)> lighting = [&](float reflectivity) //reflectivity of previous material, 1 for first material
+          std::function<void(float, float)> lighting = [&](float reflectivity, float refractivity) //reflectivity of previous material, 1 for first material
           {
               HitPoint closestHit;
 
               for (std::shared_ptr<Shape> s : world.getShapes())
               {
-                  direction = glm::normalize(direction);
-
-                  HitPoint h = s.get()->intersect(Ray{ origin,  direction }); //CAUSES CRASHES, unrelated to filereading
+                  HitPoint h = s.get()->intersect(Ray{ origin,  direction });
 
                   if (h.intersect && (h.dist < closestHit.dist || !closestHit.intersect))
                   {
@@ -190,10 +194,11 @@ int main(int argc, char* argv[])
               if (closestHit.intersect)
               {
                   reflectivity *= (1.f - closestHit.objMat.reflectivity); //reduce own material intensity in exchange for adding reflected objects intensity
+                  refractivity *= (1.f - closestHit.objMat.refractivity);
 
-                  if (0 == reflectionCount) pColor = { 0.f, 0.f, 0.f };
+                  if (0 == reflectionCount && 0 == refractionCount) pColor = { 0.f, 0.f, 0.f };
                   pColor += closestHit.objMat.ambient * ambientIntensity *
-                      reflectivity;
+                      reflectivity * refractivity;
 
                   for (std::shared_ptr<PointLight> l : world.getLights())
                   {
@@ -218,7 +223,7 @@ int main(int argc, char* argv[])
 
                       glm::vec3 lightDirection = closestHit.intersectPoint + closestHit.objNormal - l.get()->origin;
 
-                      glm::vec4 lightDir4{ lightDirection.x, lightDirection.y, lightDirection.z, 0.f };
+                      glm::vec4 lightDir4{ lightDirection.x, lightDirection.y, lightDirection.z, 1.f };
                       glm::vec3 rotAxis = closestHit.objNormal;
                       glm::mat4 rotMat = glm::rotate((float)M_PI, rotAxis); //rotate 180 degrees around the normal
                       glm::vec4 reflectedLightDir4 = -lightDir4 * rotMat;
@@ -234,12 +239,67 @@ int main(int argc, char* argv[])
 
                       pColor += (closestHit.objMat.diffusive * (float)notObstructed * dotProduct1 + closestHit.objMat.specular * pow(dotProduct2, closestHit.objMat.specularExp)) 
                           * l.get()->color * l.get()->intensity
-                          * reflectivity;
+                          * reflectivity * refractivity;
+                  }
+
+
+                  //NOTE: refraction does not work with multiple reflactive surfaces inside of each other
+                  //this is still inside of the intersection if statement, so a hit must have occurred
+                  if (closestHit.objMat.refractivity > 0.001f) //if our object is refractive, perform another lighting call using refractive information
+                  {
+                      for (std::shared_ptr<Shape> s : world.getShapes())
+                      {
+                          if (s.get()->getName() == closestHit.objName) //find the object we hit
+                          {
+                              //our surface normal and direction should already be normalized
+                              glm::vec3 rotAxis = glm::cross(closestHit.objNormal, direction); //we want to rotate around the line which is perpendicular to both our incident ray and surface normal
+                              float rotAngle = asin(
+                                  sin(
+                                      acos(glm::dot(closestHit.objNormal, direction)) //the angle between our normal and incident ray
+                                  )
+                                  / closestHit.objMat.refractiveIndex
+                              );
+
+                              if(refractionCount > 1) std::cout << "Fail!" << std::endl;
+
+                              glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
+                              glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 1.f };
+
+                              glm::vec4 refractDir4 = -norm4 * rotMat; //rotating the normal instead of the direction
+                              glm::vec3 refractDir{ refractDir4 };
+
+                              HitPoint h = s.get()->intersect(Ray{ //attempt to intersect with our shape (should work if it isn't unreasonably thin at this point)
+                                  closestHit.intersectPoint - closestHit.objNormal * 0.01f, //trace a ray starting inside of our shape
+                                  refractDir });
+
+                              if (h.intersect)
+                              {
+                                  //save our origin, because we are going to need to revert it back after recursively calling the function
+                                  glm::vec3 oldOrigin = origin;
+
+                                  //we will recursively call our function to add lighting based on what we find upon leaving our surface,
+                                  //this however renders objects within a refractive object invisible
+                                  origin = h.intersectPoint + h.objNormal * 0.01f;
+
+                                  ++refractionCount;
+                                  lighting(1.f, h.objMat.refractivity); //currently crashes, conditions cause infinite recursion
+
+                                  origin = oldOrigin;
+                              }
+                              else
+                              {
+                                  pColor += bgColor * reflectivity; //ignore refractivvity since no refraction occurred
+                                  return;
+                              }
+
+                              break;
+                          }
+                      }
                   }
               }
               else
               {
-                  pColor += bgColor * reflectivity;
+                  pColor += bgColor * reflectivity * refractivity;
                   return;
               }
 
@@ -251,20 +311,21 @@ int main(int argc, char* argv[])
                   reflectionCount < maxReflectionCount) //prevent infinite loops between reflective surfaces
               {
                   //preparation for reflection
-                  origin = closestHit.intersectPoint + closestHit.objNormal; //shift origin (add normal to make sure our hit test doesn't collide with the object)
+                  origin = closestHit.intersectPoint + closestHit.objNormal * 0.01f; //shift origin (add normal to make sure our hit test doesn't collide with the object)
 
                   glm::mat4 rotMat = glm::rotate((float)M_PI, closestHit.objNormal);
-                  glm::vec4 direction4{ direction.x, direction.y, direction.z, 0.f };
+                  glm::vec4 direction4{ direction.x, direction.y, direction.z, 1.f };
 
                   glm::vec4 newDir4 = -direction4 * rotMat;
                   direction = glm::vec3{ newDir4 }; //reflect direction
+                  direction = glm::normalize(direction);
 
                   ++reflectionCount;
-                  lighting(closestHit.objMat.reflectivity);
+                  lighting(closestHit.objMat.reflectivity, 1.f);
               }
           };
 
-          lighting(1.f);
+          lighting(1.f, 1.f);
 
           pColor.r /= (pColor.r + 1.f);
           pColor.g /= (pColor.g + 1.f);

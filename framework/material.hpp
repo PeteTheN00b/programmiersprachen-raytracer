@@ -10,7 +10,9 @@ struct Material
 	Color specular;
 	int specularExp;
 
-	float reflectivity; //multiplier to reflect
+	float reflectivity; //multiplier to reflect, between 0 and 1
+	float refractivity; //multiplier to refract, between 0 and 1
+	float refractiveIndex;
 };
 
 #endif
