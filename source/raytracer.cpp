@@ -51,7 +51,14 @@ int main(int argc, char* argv[])
   renderer.render();
 
   Color const bgColor{0.1f, 0.4f, 0.2f}; //background color
-  glm::vec3 const observerLoc{ 0.f, 0.f, 0.f };
+
+  //camera variables
+  glm::vec3 observerLoc{ 0.f, 0.f, 0.f };
+  float fovX = 60.f;
+  float const fovY = 60.f;
+
+  glm::vec3 dir{ 0.f, 0.f, -1.f }; //-z direction (camera forward)
+  glm::vec3 up{ 0.f, 1.f, 0.f }; //y direction
 
 
   World world{};
@@ -141,6 +148,14 @@ int main(int argc, char* argv[])
 
               world.createLight(p, color, intensity);
           }
+          else if ("cmaera == identifier")
+          {
+              std::string name;
+
+              in_sstream >> name >> fovX >> observerLoc.x >> observerLoc.y >> observerLoc.z >> dir.x >> dir.y >> dir.z >> up.x >> up.y >> up.z;
+              dir = glm::normalize(dir);
+              up = glm::normalize(up);
+          }
       }
   }
 
@@ -157,13 +172,9 @@ int main(int argc, char* argv[])
           //by default our pixel has the background color
           Color pColor = { 0.f, 0.f, 0.f };
 
-          float const fovX = 80.f;
-          float const fovY = 80.f;
           float x = ((float)i / (float)image_width - 0.5f) * 2 * (float)tan(fovX / 180.f * M_PI);
           float y = ((float)j / (float)image_width - 0.5f) * 2 * (float)tan(fovY / 180.f * M_PI);
 
-          glm::vec3 const dir{ 0.f, 0.f, -1.f }; //-z direction (camera forward)
-          glm::vec3 const up{ 0.f, 1.f, 0.f }; //y direction
           glm::vec3 const right = glm::cross(dir, up); //x direction
 
           glm::vec3 direction = x * right + y * up + dir;
@@ -260,7 +271,7 @@ int main(int argc, char* argv[])
                                   / closestHit.objMat.refractiveIndex
                               );
 
-                              if(refractionCount > 1) std::cout << "Fail!" << std::endl;
+                              if(refractionCount > 1) std::cout << "Refraction Repetition Fail!" << std::endl;
 
                               glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
                               glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 1.f };
