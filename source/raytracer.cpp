@@ -37,6 +37,20 @@ Color operator*=(Color& color, float f)
     return color;
 }
 
+Ray transformRay(glm::mat4 const& mat, Ray const& ray)
+{
+    glm::vec4 p4{ ray.origin.x, ray.origin.y, ray.origin.z, 1.f };
+    glm::vec4 d4{ ray.direction.x, ray.direction.y, ray.direction.z, 0.f };
+
+    p4 = glm::inverse(mat) * p4;
+    d4 = glm::inverse(mat) * d4;
+
+    return{
+        {p4.x, p4.y, p4.z},
+        {d4.x, d4.y, d4.z}
+    };
+}
+
 //specular is being initialized with centre point values? specularExp is bugged?
 
 //now single threaded again
@@ -62,19 +76,6 @@ int main(int argc, char* argv[])
 
 
   World world{};
-  /*world.createMaterial("Red", { 0.7f, 0.f, 0.2f }, { 0.7f, 0.f, 0.2f }, { 0.7f, 0.f, 0.2f }, 50);
-  world.createMaterial("Purple", { 0.7f, 0.1f, 0.9f }, { 0.7f, 0.1f, 0.9f }, { 0.7f, 0.1f, 0.9f }, 50);
-  world.createMaterial("Table", { 0.7f, 0.6f, 0.f }, { 0.7f, 0.6f, 0.f }, { 0.7f, 0.6f, 0.f }, 50);
-  world.createMaterial("Cyan", { 0.f, 0.9f, 0.8f }, { 0.f, 0.9f, 0.8f }, { 0.f, 0.9f, 0.8f }, 50);
-
-  world.createSphere("Red", { 0.f, 0.f, -150.f }, 50.f);
-  world.createSphere("Purple", { -20.f, -70.f, -150.f }, 80.f);
-
-  world.createBox("Table", { 0.f, -140.f, -300.f }, 500.f, 20.f, 500.f);
-  world.createBox("Cyan", { 150.f, -120.f, -100.f }, 100.f, 40.f, 60.f);
-
-  world.createLight({ 3000.f, 500.f, -150.f }, 1.f);
-  world.createLight({ -3000.f, 500.f, -150.f }, 1.f);*/
 
   std::ifstream freader;
   freader.open("scene.sdf", std::ios::in);
@@ -120,21 +121,21 @@ int main(int argc, char* argv[])
               if ("box" == identifier)
               {
                   glm::vec3 p1, p2;
-                  std::string matName;
+                  std::string name, matName;
 
-                  in_sstream >> p1.x >> p1.y >> p1.z >> p2.x >> p2.y >> p2.z >> matName;
+                  in_sstream >> name >> p1.x >> p1.y >> p1.z >> p2.x >> p2.y >> p2.z >> matName;
 
-                  world.createBox(matName, p1 / 2.f + p2 / 2.f, abs(p2.x - p1.x) / 2.f, abs(p2.y - p1.y) / 2.f, abs(p2.z - p1.z) / 2.f);
+                  world.createBox(name, matName, p1 / 2.f + p2 / 2.f, abs(p2.x - p1.x) / 2.f, abs(p2.y - p1.y) / 2.f, abs(p2.z - p1.z) / 2.f);
               }
               else if ("sphere" == identifier)
               {
                   glm::vec3 p;
                   float r;
-                  std::string matName;
+                  std::string name, matName;
 
-                  in_sstream >> p.x >> p.y >> p.z >> r >> matName;
+                  in_sstream >> name >> p.x >> p.y >> p.z >> r >> matName;
 
-                  world.createSphere(matName, p, r);
+                  world.createSphere(name, matName, p, r);
               }
 
           }
@@ -148,13 +149,53 @@ int main(int argc, char* argv[])
 
               world.createLight(p, color, intensity);
           }
-          else if ("cmaera == identifier")
+          else if ("camera" == identifier)
           {
               std::string name;
 
               in_sstream >> name >> fovX >> observerLoc.x >> observerLoc.y >> observerLoc.z >> dir.x >> dir.y >> dir.z >> up.x >> up.y >> up.z;
               dir = glm::normalize(dir);
               up = glm::normalize(up);
+          }
+      }
+      else if ("transform" == identifier)
+      {
+          in_sstream >> identifier;
+          std::cout << "transform" << std::endl;
+
+          std::shared_ptr<Shape> s = world.findShape(identifier);
+
+          if (nullptr != s)
+          {
+              in_sstream >> identifier;
+
+              if ("translate" == identifier)
+              {
+                  glm::vec3 translation;
+
+                  in_sstream >> translation.x >> translation.y >> translation.z;
+
+                  s.get()->translate(translation);
+              }
+              else if ("rotate" == identifier)
+              {
+                  float theta;
+                  glm::vec3 axis;
+
+                  in_sstream >> theta >> axis.x >> axis.y >> axis.z;
+
+                  s.get()->rotate(theta / 180 * M_PI, axis);
+              }
+              else if ("scale" == identifier)
+              {
+                  std::cout << "scale" << std::endl;
+
+                  glm::vec3 scale;
+
+                  in_sstream >> scale.x >> scale.y >> scale.z;
+
+                  s.get()->scale(scale);
+              }
           }
       }
   }
@@ -193,11 +234,22 @@ int main(int argc, char* argv[])
 
               for (std::shared_ptr<Shape> s : world.getShapes())
               {
-                  HitPoint h = s.get()->intersect(Ray{ origin,  direction });
+                  Ray r{ origin, direction };
+                  r = transformRay(s.get()->getWorldTransformation(), r); //transform our ray using the inverse of the shape's world transformation
+
+                  HitPoint h = s.get()->intersect(r);
 
                   if (h.intersect && (h.dist < closestHit.dist || !closestHit.intersect))
                   {
                       closestHit = h;
+
+                      glm::vec4 norm4 = glm::transpose(glm::inverse(s.get()->getWorldTransformation())) * 
+                          glm::vec4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 0.f }; //transform our normal using the transpose of the inverse
+                      closestHit.objNormal = glm::vec3{ norm4.x, norm4.y, norm4.z };
+
+                      glm::vec4 intersect4 = glm::transpose(glm::inverse(s.get()->getWorldTransformation())) *
+                          glm::vec4{ closestHit.intersectPoint.x, closestHit.intersectPoint.y, closestHit.intersectPoint.z, 1.f };
+                      closestHit.intersectPoint = glm::vec3{ intersect4.x, intersect4.y, intersect4.z };
                   }
               }
 
@@ -258,52 +310,49 @@ int main(int argc, char* argv[])
                   //this is still inside of the intersection if statement, so a hit must have occurred
                   if (closestHit.objMat.refractivity > 0.001f) //if our object is refractive, perform another lighting call using refractive information
                   {
-                      for (std::shared_ptr<Shape> s : world.getShapes())
+                      std::shared_ptr<Shape> s = world.findShape(closestHit.objName);
+
+                      if (nullptr != s)
                       {
-                          if (s.get()->getName() == closestHit.objName) //find the object we hit
+                          //our surface normal and direction should already be normalized
+                          glm::vec3 rotAxis = glm::cross(closestHit.objNormal, direction); //we want to rotate around the line which is perpendicular to both our incident ray and surface normal
+                          float rotAngle = asin(
+                              sin(
+                                  acos(glm::dot(closestHit.objNormal, direction)) //the angle between our normal and incident ray
+                              )
+                              / closestHit.objMat.refractiveIndex
+                          );
+
+                          if (refractionCount > 1) std::cout << "Refraction Repetition Fail!" << std::endl;
+
+                          glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
+                          glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 1.f };
+
+                          glm::vec4 refractDir4 = -norm4 * rotMat; //rotating the normal instead of the direction
+                          glm::vec3 refractDir{ refractDir4 };
+
+                          HitPoint h = s.get()->intersect(Ray{ //attempt to intersect with our shape (should work if it isn't unreasonably thin at this point)
+                              closestHit.intersectPoint - closestHit.objNormal * 0.01f, //trace a ray starting inside of our shape
+                              refractDir });
+
+                          if (h.intersect)
                           {
-                              //our surface normal and direction should already be normalized
-                              glm::vec3 rotAxis = glm::cross(closestHit.objNormal, direction); //we want to rotate around the line which is perpendicular to both our incident ray and surface normal
-                              float rotAngle = asin(
-                                  sin(
-                                      acos(glm::dot(closestHit.objNormal, direction)) //the angle between our normal and incident ray
-                                  )
-                                  / closestHit.objMat.refractiveIndex
-                              );
+                              //save our origin, because we are going to need to revert it back after recursively calling the function
+                              glm::vec3 oldOrigin = origin;
 
-                              if(refractionCount > 1) std::cout << "Refraction Repetition Fail!" << std::endl;
+                              //we will recursively call our function to add lighting based on what we find upon leaving our surface,
+                              //this however renders objects within a refractive object invisible
+                              origin = h.intersectPoint + h.objNormal * 0.01f;
 
-                              glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
-                              glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 1.f };
+                              ++refractionCount;
+                              lighting(1.f, h.objMat.refractivity); //currently crashes, conditions cause infinite recursion
 
-                              glm::vec4 refractDir4 = -norm4 * rotMat; //rotating the normal instead of the direction
-                              glm::vec3 refractDir{ refractDir4 };
-
-                              HitPoint h = s.get()->intersect(Ray{ //attempt to intersect with our shape (should work if it isn't unreasonably thin at this point)
-                                  closestHit.intersectPoint - closestHit.objNormal * 0.01f, //trace a ray starting inside of our shape
-                                  refractDir });
-
-                              if (h.intersect)
-                              {
-                                  //save our origin, because we are going to need to revert it back after recursively calling the function
-                                  glm::vec3 oldOrigin = origin;
-
-                                  //we will recursively call our function to add lighting based on what we find upon leaving our surface,
-                                  //this however renders objects within a refractive object invisible
-                                  origin = h.intersectPoint + h.objNormal * 0.01f;
-
-                                  ++refractionCount;
-                                  lighting(1.f, h.objMat.refractivity); //currently crashes, conditions cause infinite recursion
-
-                                  origin = oldOrigin;
-                              }
-                              else
-                              {
-                                  pColor += bgColor * reflectivity; //ignore refractivvity since no refraction occurred
-                                  return;
-                              }
-
-                              break;
+                              origin = oldOrigin;
+                          }
+                          else
+                          {
+                              pColor += bgColor * reflectivity; //ignore refractivvity since no refraction occurred
+                              return;
                           }
                       }
                   }
@@ -345,6 +394,8 @@ int main(int argc, char* argv[])
           Pixel p{ i, j, pColor };
           renderer.write(p);
       }
+
+      std::cout << (float)(i + 1) / (float)(image_width) * 100.f << "% completed" << std::endl;
   }
 
   Window window{{image_width, image_height}};

@@ -18,11 +18,13 @@ public:
 		float reflectivity, float refractivity, float refractiveIndex);
 	std::shared_ptr<Material> findMat(std::string const& matName) const;
 
-	void createSphere(std::string const& matName, glm::vec3 const& centre, float radius);
-	void createBox(std::string const& matName, glm::vec3 const& origin, float w, float h, float l);
+	void createSphere(std::string name, std::string const& matName, glm::vec3 const& centre, float radius);
+	void createBox(std::string name, std::string const& matName, glm::vec3 const& origin, float w, float h, float l);
 	void createLight(glm::vec3 const& origin, Color color, float intensity);
 
 	std::vector<std::shared_ptr<Shape>> getShapes();
+	std::shared_ptr<Shape> findShape(std::string name);
+
 	std::vector<std::shared_ptr<PointLight>> getLights();
 
 private:

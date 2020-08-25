@@ -2,6 +2,7 @@
 #define SHAPE_HPP
 
 #include <string>
+#include <glm/gtx/transform.hpp>
 
 #include "color.hpp"
 #include "ray.hpp"
@@ -24,10 +25,22 @@ public:
 
 	std::string getName() const;
 
+	glm::mat4 getWorldTransformation() const;
+	void translate(glm::vec3);
+	void rotate(float, glm::vec3);
+	void rotateX(float); //use radians
+	void rotateY(float);
+	void rotateZ(float);
+	void scale(glm::vec3);
+
 protected:
 	std::string name_;
 
 	Material m_;
+
+	glm::mat4 world_translation_; //using these instead of a single variable to allow for transformations to be described in any order
+	glm::mat4 world_rotation_;
+	glm::mat4 world_scale_;
 };
 
 std::ostream& operator<<(std::ostream& os, Shape const& s);
