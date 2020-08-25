@@ -9,11 +9,10 @@
 Sphere::Sphere(std::string const& name, Material const& m, glm::vec3 const& centre, float radius) :
 	Shape(name, m),
 	centre_{centre},
-	radius_{radius} {std::cout << "Sphere ctor" << std::endl; }
+	radius_{radius} {}
 
 Sphere::~Sphere()
 {
-	std::cout << "Sphere dtor" << std::endl;
 }
 
 float Sphere::area() const

@@ -26,12 +26,12 @@ public:
 	std::string getName() const;
 
 	glm::mat4 getWorldTransformation() const;
-	void translate(glm::vec3);
-	void rotate(float, glm::vec3);
-	void rotateX(float); //use radians
-	void rotateY(float);
-	void rotateZ(float);
-	void scale(glm::vec3);
+	virtual void translate(glm::vec3);
+	virtual void rotate(float, glm::vec3);
+	virtual void rotateX(float);
+	virtual void rotateY(float);
+	virtual void rotateZ(float);
+	virtual void scale(glm::vec3);
 
 protected:
 	std::string name_;
