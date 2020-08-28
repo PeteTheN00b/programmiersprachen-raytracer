@@ -260,9 +260,9 @@ int main(int argc, char* argv[])
                           glm::vec4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 0.f }; //transform our normal using the transpose of the inverse
                       closestHit.objNormal = glm::vec3{ norm4.x, norm4.y, norm4.z };
 
-                      //glm::vec4 intersect4 = glm::transpose(glm::inverse(s.get()->getWorldTransformation())) *
-                      //    glm::vec4{ closestHit.intersectPoint.x, closestHit.intersectPoint.y, closestHit.intersectPoint.z, 1.f };
-                      //closestHit.intersectPoint = glm::vec3{ intersect4.x, intersect4.y, intersect4.z };
+                      glm::vec4 intersect4 = s.get()->getWorldTransformation() *
+                          glm::vec4{ closestHit.intersectPoint.x, closestHit.intersectPoint.y, closestHit.intersectPoint.z, 1.f };
+                      closestHit.intersectPoint = glm::vec3{ intersect4.x, intersect4.y, intersect4.z };
                   }
               }
 
