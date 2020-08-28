@@ -8,13 +8,17 @@
 class Composite : public Shape
 {
 public:
-	Composite(std::string const& name, Material const& m);
+	Composite(std::string const& name);
 	void addChild(std::shared_ptr<Shape>);
 
 	float area() const override;
 	float volume() const override;
 
 	HitPoint intersect(Ray const& r) const override;
+
+	void translate(glm::vec3) override;
+	void rotate(float, glm::vec3) override;
+	void scale(glm::vec3) override;
 
 protected:
 	std::vector<std::shared_ptr<Shape>> children;

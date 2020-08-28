@@ -1,7 +1,7 @@
 #include "composite.hpp"
 
-Composite::Composite(std::string const& name, Material const& m) :
-	Shape(name, m)
+Composite::Composite(std::string const& name) :
+	Shape(name, Material{})
 {}
 
 void Composite::addChild(std::shared_ptr<Shape> shape)
@@ -44,4 +44,34 @@ HitPoint Composite::intersect(Ray const& r) const
 	}
 
 	return closestHit;
+}
+
+void Composite::translate(glm::vec3 v)
+{
+	Shape::translate(v);
+
+	for (std::shared_ptr<Shape> child : children)
+	{
+		child.get()->translate(v);
+	}
+}
+
+void Composite::rotate(float f, glm::vec3 v)
+{
+	Shape::rotate(f, v);
+
+	for (std::shared_ptr<Shape> child : children)
+	{
+		child.get()->rotate(f, v);
+	}
+}
+
+void Composite::scale(glm::vec3 v)
+{
+	Shape::scale(v);
+
+	for (std::shared_ptr<Shape> child : children)
+	{
+		child.get()->scale(v);
+	}
 }

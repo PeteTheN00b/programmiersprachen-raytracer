@@ -56,6 +56,15 @@ void World::createLight(glm::vec3 const& origin, Color color, float intensity)
 		PointLight{origin, color, intensity}));
 }
 
+std::shared_ptr<Composite> World::createComposite(std::string name)
+{
+	std::shared_ptr<Composite> comp = std::make_shared<Composite>(Composite{ name });
+
+	shapes_.push_back(comp);
+
+	return comp;
+}
+
 std::vector<std::shared_ptr<Shape>> World::getShapes()
 {
 	return shapes_;

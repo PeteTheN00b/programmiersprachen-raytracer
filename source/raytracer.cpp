@@ -137,7 +137,20 @@ int main(int argc, char* argv[])
 
                   world.createSphere(name, matName, p, r);
               }
+              else if ("composite" == identifier)
+              {
+                  std::string name;
 
+                  in_sstream >> name;
+
+                  std::shared_ptr<Composite> comp = world.createComposite(name);
+
+                  std::string childName;
+                  while (in_sstream >> childName)
+                  {
+                      comp.get()->addChild(world.findShape(childName));
+                  }
+              }
           }
           else if ("light" == identifier)
           {
@@ -247,9 +260,9 @@ int main(int argc, char* argv[])
                           glm::vec4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 0.f }; //transform our normal using the transpose of the inverse
                       closestHit.objNormal = glm::vec3{ norm4.x, norm4.y, norm4.z };
 
-                      glm::vec4 intersect4 = glm::transpose(glm::inverse(s.get()->getWorldTransformation())) *
-                          glm::vec4{ closestHit.intersectPoint.x, closestHit.intersectPoint.y, closestHit.intersectPoint.z, 1.f };
-                      closestHit.intersectPoint = glm::vec3{ intersect4.x, intersect4.y, intersect4.z };
+                      //glm::vec4 intersect4 = glm::transpose(glm::inverse(s.get()->getWorldTransformation())) *
+                      //    glm::vec4{ closestHit.intersectPoint.x, closestHit.intersectPoint.y, closestHit.intersectPoint.z, 1.f };
+                      //closestHit.intersectPoint = glm::vec3{ intersect4.x, intersect4.y, intersect4.z };
                   }
               }
 
@@ -272,7 +285,10 @@ int main(int argc, char* argv[])
 
                       for (std::shared_ptr<Shape> s : world.getShapes()) //check whether or not our ray is obstructed by the light source
                       {
-                          if (s.get()->intersect(Ray{ closestHit.intersectPoint + closestHit.objNormal, direction }).intersect)
+                          Ray r{ closestHit.intersectPoint + closestHit.objNormal, direction };
+                          r = transformRay(s.get()->getWorldTransformation(), r);
+
+                          if (s.get()->intersect(r).intersect)
                               //adding normal to make sure it doesn't re-intersect with the intersection point
                           {
                               notObstructed = 0;
