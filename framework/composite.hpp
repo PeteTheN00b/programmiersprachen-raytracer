@@ -16,7 +16,7 @@ public:
 
 	HitPoint intersect(Ray const& r) const override;
 
-	void translate(glm::vec3) override;
+	void translate(glm::vec3) override; //transform the composite's children rather than the composite itself
 	void rotate(float, glm::vec3) override;
 	void scale(glm::vec3) override;
 

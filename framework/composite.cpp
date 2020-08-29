@@ -31,10 +31,8 @@ float Composite::volume() const
 	return sum;
 }
 
-HitPoint Composite::intersect(Ray const& ray) const
+HitPoint Composite::intersect(Ray const& r) const
 {
-	Ray r = transformRay(ray);
-
 	HitPoint closestHit;
 
 	for (std::shared_ptr<Shape> child : children)
@@ -50,8 +48,6 @@ HitPoint Composite::intersect(Ray const& ray) const
 
 void Composite::translate(glm::vec3 v)
 {
-	Shape::translate(v);
-
 	for (std::shared_ptr<Shape> child : children)
 	{
 		child.get()->translate(v);
@@ -60,8 +56,6 @@ void Composite::translate(glm::vec3 v)
 
 void Composite::rotate(float f, glm::vec3 v)
 {
-	Shape::rotate(f, v);
-
 	for (std::shared_ptr<Shape> child : children)
 	{
 		child.get()->rotate(f, v);
@@ -70,8 +64,6 @@ void Composite::rotate(float f, glm::vec3 v)
 
 void Composite::scale(glm::vec3 v)
 {
-	Shape::scale(v);
-
 	for (std::shared_ptr<Shape> child : children)
 	{
 		child.get()->scale(v);
