@@ -3,9 +3,9 @@
 Shape::Shape(std::string const& name, Material const& m) :
 	name_{ name },
 	m_{ m },
-	world_translation_{ glm::mat4() }, //initialize transformations as identity matrices
-	world_rotation_{ glm::mat4() },
-	world_scale_{ glm::mat4() }
+	world_translation_{ glm::mat4(1.0f) }, //initialize transformations as identity matrices
+	world_rotation_{ glm::mat4(1.0f) },
+	world_scale_{ glm::mat4(1.0f) }
 {}
 
 Shape::~Shape()
@@ -35,7 +35,7 @@ std::ostream& operator<<(std::ostream& os, Shape const& s)
 
 glm::mat4 Shape::getWorldTransformation() const
 {
-	return world_scale_ * world_rotation_ * world_translation_;
+	return world_translation_ * world_rotation_ * world_scale_;
 }
 
 void Shape::translate(glm::vec3 v)
@@ -70,7 +70,7 @@ void Shape::rotateX(float theta)
 
 void Shape::rotateY(float theta)
 {
-	glm::mat4 rotate = glm::mat4();
+	glm::mat4 rotate = glm::mat4(1.0f);
 
 	rotate[0][0] = cos(theta);
 	rotate[0][2] = sin(theta);
@@ -82,7 +82,7 @@ void Shape::rotateY(float theta)
 
 void Shape::rotateZ(float theta)
 {
-	glm::mat4 rotate = glm::mat4();
+	glm::mat4 rotate = glm::mat4(1.0f);
 
 	rotate[0][0] = cos(theta);
 	rotate[0][1] = -sin(theta);
@@ -94,11 +94,11 @@ void Shape::rotateZ(float theta)
 
 void Shape::scale(glm::vec3 v)
 {
-	glm::mat4 scale = glm::mat4();
+	glm::mat4 scale = /*glm::scale(v);*/glm::mat4();
 
-	scale[0][0] *= v.x;
-	scale[1][1] *= v.y;
-	scale[2][2] *= v.z;
+	scale[0][0] = v.x;
+	scale[1][1] = v.y;
+	scale[2][2] = v.z;
 
 	world_scale_ *= scale;
 }

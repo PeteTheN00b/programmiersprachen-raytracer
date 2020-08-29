@@ -28,6 +28,7 @@ float Sphere::volume() const
 HitPoint Sphere::intersect(Ray const& ray) const
 {
 	Ray r = transformRay(ray);
+	r.direction = glm::normalize(r.direction);
 
 	HitPoint h;
 	glm::vec3 iNormal;

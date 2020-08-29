@@ -111,12 +111,17 @@ void Box::intersectPlane(HitPoint& h, Ray const& r, Dim plane) const
 			glm::vec4{ h.objNormal.x, h.objNormal.y, h.objNormal.z, 0.f };
 		h.objNormal = glm::vec3{ norm4.x, norm4.y, norm4.z };
 		h.objNormal = glm::normalize(h.objNormal);
+
+		glm::vec4 intersect4 = getWorldTransformation() *
+			glm::vec4{ h.intersectPoint.x, h.intersectPoint.y, h.intersectPoint.z, 1.f };
+		h.intersectPoint = glm::vec3{ intersect4.x, intersect4.y, intersect4.z };
 	}
 }
 
 HitPoint Box::intersect(Ray const& ray) const //assuming normalized input ray
 {
 	Ray r = transformRay(ray);
+	r.direction = glm::normalize(r.direction);
 
 	HitPoint h;
 	h.dist = FLT_MAX; //necessary as many checks are skipped if the current chick returns a smaller distance

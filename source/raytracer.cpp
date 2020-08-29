@@ -248,7 +248,6 @@ int main(int argc, char* argv[])
               for (std::shared_ptr<Shape> s : world.getShapes())
               {
                   Ray r{ origin, direction };
-                  //r = transformRay(s.get()->getWorldTransformation(), r); //transform our ray using the inverse of the shape's world transformation
 
                   HitPoint h = s.get()->intersect(r);
 
@@ -278,7 +277,6 @@ int main(int argc, char* argv[])
                       for (std::shared_ptr<Shape> s : world.getShapes()) //check whether or not our ray is obstructed by the light source
                       {
                           Ray r{ closestHit.intersectPoint + closestHit.objNormal, direction };
-                          //r = transformRay(s.get()->getWorldTransformation(), r);
 
                           if (s.get()->intersect(r).intersect)
                               //adding normal to make sure it doesn't re-intersect with the intersection point
