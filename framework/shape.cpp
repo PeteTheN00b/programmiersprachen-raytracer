@@ -102,3 +102,17 @@ void Shape::scale(glm::vec3 v)
 
 	world_scale_ *= scale;
 }
+
+Ray Shape::transformRay(Ray const& ray) const
+{
+	glm::vec4 p4{ ray.origin.x, ray.origin.y, ray.origin.z, 1.f };
+	glm::vec4 d4{ ray.direction.x, ray.direction.y, ray.direction.z, 0.f };
+
+	p4 = glm::inverse(getWorldTransformation()) * p4;
+	d4 = glm::inverse(getWorldTransformation()) * d4;
+
+	return{
+		{p4.x, p4.y, p4.z},
+		{d4.x, d4.y, d4.z}
+	};
+}

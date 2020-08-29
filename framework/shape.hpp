@@ -33,6 +33,8 @@ public:
 	virtual void rotateZ(float);
 	virtual void scale(glm::vec3);
 
+	Ray transformRay(Ray const& r) const;
+
 protected:
 	std::string name_;
 

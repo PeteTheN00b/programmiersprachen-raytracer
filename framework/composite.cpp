@@ -31,8 +31,10 @@ float Composite::volume() const
 	return sum;
 }
 
-HitPoint Composite::intersect(Ray const& r) const
+HitPoint Composite::intersect(Ray const& ray) const
 {
+	Ray r = transformRay(ray);
+
 	HitPoint closestHit;
 
 	for (std::shared_ptr<Shape> child : children)
