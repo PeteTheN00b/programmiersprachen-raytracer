@@ -4,15 +4,62 @@ Composite::Composite(std::string const& name) :
 	Shape(name, Material{})
 {}
 
+std::vector<std::shared_ptr<Shape>> Composite::getChildren()
+{
+	return children_;
+}
+
+std::vector<std::shared_ptr<Shape>> Composite::getAllChildren()
+{
+	std::vector<std::shared_ptr<Shape>> allChildren = getChildren();
+
+	//for (auto child = children_.begin(); child != children_.end(); ++child)
+	for (std::shared_ptr<Shape> child : children_)
+	{
+		if (typeid(*(child.get())) == typeid(Composite))
+		{
+			std::shared_ptr<Composite> cChild = std::static_pointer_cast<Composite>(child);
+			std::vector<std::shared_ptr<Shape>> cChildren = cChild.get()->getAllChildren();
+
+			allChildren.insert(
+				allChildren.end(),
+				cChildren.cbegin(),
+				cChildren.cend()
+			);
+		}
+	}
+
+	return allChildren;
+}
+
 void Composite::addChild(std::shared_ptr<Shape> shape)
 {
-	children.push_back(shape);
+	if (nullptr == shape) return;
+
+	children_.push_back(shape);
+}
+
+std::shared_ptr<Shape> Composite::removeChild(std::string const& name)
+{
+	for (auto child = children_.begin(); child != children_.end(); ++child)
+	{
+		if (child->get()->getName() == name)
+		{
+			std::shared_ptr<Shape> retChild = *child;
+
+			children_.erase(child);
+
+			return retChild;
+		}
+	}
+
+	return nullptr;
 }
 
 float Composite::area() const
 {
 	float sum = 0;
-	for (std::shared_ptr<Shape> child : children)
+	for (std::shared_ptr<Shape> child : children_)
 	{
 		sum += child.get()->area();
 	}
@@ -23,7 +70,7 @@ float Composite::area() const
 float Composite::volume() const
 {
 	float sum = 0;
-	for (std::shared_ptr<Shape> child : children)
+	for (std::shared_ptr<Shape> child : children_)
 	{
 		sum += child.get()->volume();
 	}
@@ -35,7 +82,7 @@ HitPoint Composite::intersect(Ray const& r) const
 {
 	HitPoint closestHit;
 
-	for (std::shared_ptr<Shape> child : children)
+	for (std::shared_ptr<Shape> child : children_)
 	{
 		HitPoint h = child.get()->intersect(r);
 
@@ -48,7 +95,7 @@ HitPoint Composite::intersect(Ray const& r) const
 
 void Composite::translate(glm::vec3 v)
 {
-	for (std::shared_ptr<Shape> child : children)
+	for (std::shared_ptr<Shape> child : children_)
 	{
 		child.get()->translate(v);
 	}
@@ -56,7 +103,7 @@ void Composite::translate(glm::vec3 v)
 
 void Composite::rotate(float f, glm::vec3 v)
 {
-	for (std::shared_ptr<Shape> child : children)
+	for (std::shared_ptr<Shape> child : children_)
 	{
 		child.get()->rotate(f, v);
 	}
@@ -64,7 +111,7 @@ void Composite::rotate(float f, glm::vec3 v)
 
 void Composite::scale(glm::vec3 v)
 {
-	for (std::shared_ptr<Shape> child : children)
+	for (std::shared_ptr<Shape> child : children_)
 	{
 		child.get()->scale(v);
 	}

@@ -148,7 +148,8 @@ int main(int argc, char* argv[])
                   std::string childName;
                   while (in_sstream >> childName)
                   {
-                      comp.get()->addChild(world.findShape(childName));
+                      world.reparent(childName, world.getRoot(), comp);
+                      //comp.get()->addChild(world.findShape(childName));
                   }
               }
           }

@@ -13,7 +13,7 @@
 class World
 {
 public:
-	World();
+	//World();
 
 	void createMaterial(std::string const& matName, Color const& ambient, Color const& diffusive, Color const& specular, int specularExp,
 		float reflectivity, float refractivity, float refractiveIndex);
@@ -26,14 +26,21 @@ public:
 
 	std::vector<std::shared_ptr<Shape>> getShapes();
 	std::shared_ptr<Shape> findShape(std::string name);
+	//std::shared_ptr<Composite> findParent(std::string name);
 
 	std::vector<std::shared_ptr<PointLight>> getLights();
 
-private:
-	int sphereCount_; //init as 0
-	int boxCount_;
+	void reparent(std::string const& childName, std::shared_ptr<Composite> oldParent, std::shared_ptr<Composite> newParent); //move child from old parent to new parent
+	void reparent(std::shared_ptr<Shape> const& child, std::shared_ptr<Composite> oldParent, std::shared_ptr<Composite> newParent);
 
-	std::vector<std::shared_ptr<Shape>> shapes_;
+	std::shared_ptr<Composite> getRoot();
+
+private:
+	//int sphereCount_; //init as 0
+	//int boxCount_;
+
+	Composite root_{ "Root" };
+	//std::vector<std::shared_ptr<Shape>> shapes_;
 	std::vector<std::shared_ptr<PointLight>> lights_;
 	std::map<std::string, std::shared_ptr<Material>> mats_; //materials are mapped to colors to make them easy to find
 };

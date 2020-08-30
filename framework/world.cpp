@@ -4,9 +4,8 @@
 #include <memory>
 #include <utility>
 
-World::World() :
-	sphereCount_{0},
-	boxCount_{0} {}
+//World::World() :
+//	root_{Composite("Root")} {}
 
 void World::createMaterial(std::string const& matName, Color const& ambient, Color const& diffusive, Color const& specular, int specularExp,
 	float reflectivity, float refractivity, float refractiveIndex)
@@ -32,22 +31,28 @@ void World::createSphere(std::string name, std::string const& matName, glm::vec3
 {
 	std::shared_ptr<Material> m = findMat(matName);
 
-	shapes_.push_back(std::make_shared<Sphere>(
+	root_.addChild(std::make_shared<Sphere>(
 		name/*"Sphere" + std::to_string(sphereCount_)*/, *(m.get()),
-		centre, radius ));
+		centre, radius));
+	//shapes_.push_back(std::make_shared<Sphere>(
+	//	name/*"Sphere" + std::to_string(sphereCount_)*/, *(m.get()),
+	//	centre, radius ));
 
-	sphereCount_++;
+	//sphereCount_++;
 }
 
 void World::createBox(std::string name, std::string const& matName, glm::vec3 const& origin, float w, float h, float l)
 {
 	std::shared_ptr<Material> m = findMat(matName);
 
-	shapes_.push_back(std::make_shared<Box>(
+	root_.addChild(std::make_shared<Box>(
 		name/*"Box" + std::to_string(boxCount_)*/, *(m.get()),
-		origin, w, h, l ));
+		origin, w, h, l));
+	//shapes_.push_back(std::make_shared<Box>(
+	//	name/*"Box" + std::to_string(boxCount_)*/, *(m.get()),
+	//	origin, w, h, l ));
 
-	boxCount_++;
+	//boxCount_++;
 }
 
 void World::createLight(glm::vec3 const& origin, Color color, float intensity)
@@ -60,19 +65,20 @@ std::shared_ptr<Composite> World::createComposite(std::string name)
 {
 	std::shared_ptr<Composite> comp = std::make_shared<Composite>(Composite{ name });
 
-	shapes_.push_back(comp);
+	root_.addChild(comp);
+	//shapes_.push_back(comp);
 
 	return comp;
 }
 
 std::vector<std::shared_ptr<Shape>> World::getShapes()
 {
-	return shapes_;
+	return root_.getAllChildren();
 }
 
 std::shared_ptr<Shape> World::findShape(std::string name)
 {
-	for (std::shared_ptr<Shape> s : shapes_)
+	for (std::shared_ptr<Shape> s : getShapes())
 	{
 		if (s.get()->getName() == name) return s;
 	}
@@ -83,4 +89,22 @@ std::shared_ptr<Shape> World::findShape(std::string name)
 std::vector<std::shared_ptr<PointLight>> World::getLights()
 {
 	return lights_;
+}
+
+void World::reparent(std::string const& childName, std::shared_ptr<Composite> oldParent, std::shared_ptr<Composite> newParent)
+{
+	//remove the child of the old parent, and add the removed child to the new parent
+	newParent.get()->addChild(
+		oldParent.get()->removeChild(childName)
+	);
+}
+
+void World::reparent(std::shared_ptr<Shape> const& child, std::shared_ptr<Composite> oldParent, std::shared_ptr<Composite> newParent)
+{
+	reparent(child.get()->getName(), oldParent, newParent);
+}
+
+std::shared_ptr<Composite> World::getRoot()
+{
+	return std::make_shared<Composite>(root_);
 }
