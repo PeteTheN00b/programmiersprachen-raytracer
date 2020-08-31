@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
   //camera variables
   glm::vec3 observerLoc{ 0.f, 0.f, 0.f };
   float fovX = 60.f;
-  float const fovY = 60.f;
+  float const fovY = 55.f;
 
   glm::vec3 dir{ 0.f, 0.f, -1.f }; //-z direction (camera forward)
   glm::vec3 up{ 0.f, 1.f, 0.f }; //y direction
@@ -219,16 +219,22 @@ int main(int argc, char* argv[])
 
   float ambientIntensity = 0.5;
 
+
+  std::ofstream ofs("first.ppm", std::ios_base::out | std::ios_base::binary); //prepare to write to this image file to store raytracer image
+
+  ofs << "P6" << std::endl << image_width << ' ' << image_height << std::endl << "255" << std::endl;
+
   //This is how we write to the renderer
-  for (unsigned int i = 0; i < image_width; i++)
+  for (int j = image_height - 1; j >= 0; --j) //swapped these around for file reading, that's why i and j are swapped (j has to count backwards for ppm writing)
+      //j is an integer and not an unsigned, because when unsigned this loop cannot reach negatives and will therefore infinitely repeat unless an unintuitive condition is used
   {
-      for (unsigned int j = 0; j < image_height; j++)
+      for (unsigned int i = 0; i < image_width; ++i)
       {
           //by default our pixel has the background color
           Color pColor = { 0.f, 0.f, 0.f };
 
           float x = ((float)i / (float)image_width - 0.5f) * 2 * (float)tan(fovX / 180.f * M_PI);
-          float y = ((float)j / (float)image_width - 0.5f) * 2 * (float)tan(fovY / 180.f * M_PI);
+          float y = ((float)j / (float)image_height - 0.5f) * 2 * (float)tan(fovY / 180.f * M_PI);
 
           glm::vec3 const right = glm::cross(dir, up); //x direction
 
@@ -398,14 +404,28 @@ int main(int argc, char* argv[])
           pColor.g /= (pColor.g + 1.f);
           pColor.b /= (pColor.b + 1.f);
 
-          Pixel p{ i, j, pColor };
+          Pixel p{ i, (unsigned)j, pColor };
           renderer.write(p);
+
+          ofs << (char)((int)(pColor.r * 255) % 256) << (char)((int)(pColor.g * 255) % 256) << (char)((int)(pColor.b * 255) % 256);
+          //floats range between 0 and 1, we want to change that to between 0 and 255, (needs to use char so every character represents one value between 0 and 255)
       }
 
-      std::cout << (float)(i + 1) / (float)(image_width) * 100.f << "% completed" << std::endl;
+      std::cout << (float)(image_height - j - 1) / (float)(image_height) * 100.f << "% completed" << std::endl;
   }
 
   Window window{{image_width, image_height}};
+
+  ofs.close();
+
+  /*int* buffer = new int[image_width * image_height * 3];
+  glReadPixels(0, 0, image_width, image_height, GL_BGR, GL_UNSIGNED_BYTE, buffer);
+
+  FILE* out = fopen("testRender.tga", "w");
+  short  TGAhead[] = { 0, 2, 0, 0, 0, 0, image_width, image_height, 24 };
+  fwrite(&TGAhead, sizeof(TGAhead), 1, out);
+  fwrite(buffer, 3 * image_width * image_height, 1, out);
+  fclose(out);*/
 
   while (!window.should_close()) {
     if (window.get_key(GLFW_KEY_ESCAPE) == GLFW_PRESS) {
