@@ -13,6 +13,7 @@
 #include <math.h>
 #include <functional>
 #include <glm/gtx/transform.hpp> //used to create basic rotation matrices
+#include <iomanip> //for stringstream set precision
 
 #include "shape.hpp"
 #include "sphere.hpp"
@@ -51,7 +52,27 @@ Ray transformRay(glm::mat4 const& mat, Ray const& ray)
     };
 }
 
-void raytrace()
+void makeAnimationSdf(int iteration, int maxIteration)
+{
+    std::ofstream ofs("scene.sdf", std::ios_base::out | std::ios_base::binary);
+
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << (float)(1 + (float)iteration / (float)maxIteration);
+
+    ofs << "define material purple 0.7 0.1 0.9 0.7 0.1 0.9 1.0 1.0 1.0 10 0.6 0.0 1.0" << std::endl
+        << "define material table 0.7 0.6 0.0 0.7 0.6 0.0 1.0 1.0 1.0 10 0.2 0.0 1.0" << std::endl
+        << "define material blue 0.0 0.3 0.9 0.0 0.3 0.9 1.0 1.0 1.0 10 0.5 0.0 1.0" << std::endl << std::endl
+        << "define shape sphere testSphere 0 -70 -150 80 purple" << std::endl << std::endl
+        << "define shape box table -500 -160 -3300 500 -140 2700 table" << std::endl
+        << "define shape box testBox -50 -140 -40 -350 -50 180 blue" << std::endl << std::endl
+        << "define shape composite testComposite testSphere testBox" << std::endl << std::endl
+        << "define light -3000 1000 -1500 1.0 0.3 0.3 1.0" << std::endl << std::endl
+        << "define camera cam1 60 0 200 500 0 -1 -7 0 7 1" << std::endl << std::endl
+        << "transform testSphere scale " << 
+        ss.str() + " " + ss.str() + " " + ss.str() << std::endl;
+}
+
+void raytrace(int iteration, int maxIteration)
 {
     unsigned const image_width = 800;
     unsigned const image_height = 600;
@@ -71,13 +92,12 @@ void raytrace()
     glm::vec3 dir{ 0.f, 0.f, -1.f }; //-z direction (camera forward)
     glm::vec3 up{ 0.f, 1.f, 0.f }; //y direction
 
-    int outputFileCount = 1;
+    int outputFileCount = iteration + 1;
     std::string outputFileName = "animation";
     if (outputFileCount < 100) outputFileName += "0";
     if (outputFileCount < 10) outputFileName += "0";
     outputFileName += std::to_string(outputFileCount);
     outputFileName += ".ppm";
-    ++outputFileCount;
 
 
     World world{};
@@ -416,26 +436,32 @@ void raytrace()
             //floats range between 0 and 1, we want to change that to between 0 and 255, (needs to use char so every character represents one value between 0 and 255)
         }
 
-        std::cout << (float)(image_height - j - 1) / (float)(image_height) * 100.f << "% completed" << std::endl;
+        std::cout << ((float)(image_height - j - 1) / (float)(image_height * (maxIteration + 1))
+            + (float)iteration / (float)(maxIteration + 1)) * 100.f << "% completed" << std::endl;
     }
 
-    Window window{ {image_width, image_height} };
+    //Window window{ {image_width, image_height} };
 
     ofs.close();
 
-    while (!window.should_close()) {
+    /*while (!window.should_close()) {
         if (window.get_key(GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             window.close();
         }
         window.show(renderer.color_buffer());
-    }
+    }*/
 }
 
 
 //now single threaded again
 int main(int argc, char* argv[])
 {
-    raytrace();
+    int const frames = 10;
+    for (int i = 0; i < frames; ++i)
+    {
+        makeAnimationSdf(i, frames - 1);
+        raytrace(i, frames - 1);
+    }
 
     return 0;
 }
