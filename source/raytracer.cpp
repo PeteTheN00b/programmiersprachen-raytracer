@@ -56,20 +56,54 @@ void makeAnimationSdf(int iteration, int maxIteration)
 {
     std::ofstream ofs("scene.sdf", std::ios_base::out | std::ios_base::binary);
 
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << (float)(1 + (float)iteration / (float)maxIteration);
-
     ofs << "define material purple 0.7 0.1 0.9 0.7 0.1 0.9 1.0 1.0 1.0 10 0.6 0.0 1.0" << std::endl
-        << "define material table 0.7 0.6 0.0 0.7 0.6 0.0 1.0 1.0 1.0 10 0.2 0.0 1.0" << std::endl
-        << "define material blue 0.0 0.3 0.9 0.0 0.3 0.9 1.0 1.0 1.0 10 0.5 0.0 1.0" << std::endl << std::endl
-        << "define shape sphere testSphere 0 -70 -150 80 purple" << std::endl << std::endl
+        << "define material table 0.7 0.6 0.0 0.7 0.6 0.0 1.0 1.0 1.0 10 0.2 0.0 1.0" << std::endl;
+
+    ofs << "define material blue 0.0 0.3 0.9 0.0 0.3 0.9 1.0 1.0 1.0 10 ";
+    if (iteration >= 20) ofs << 1.0;
+    else if (iteration < 10) ofs << 0.0;
+    else
+    {
+        std::stringstream boxReflectivity;
+
+        boxReflectivity << std::fixed << std::setprecision(2) << (float)(iteration - 10.f) / 9.f;
+        ofs << boxReflectivity.str();
+    }
+    ofs << std::endl;
+    ofs << " 0.0 1.0" << std::endl << std::endl;
+
+    ofs << "define shape sphere testSphere 0 -70 -150 80 purple" << std::endl << std::endl
         << "define shape box table -500 -160 -3300 500 -140 2700 table" << std::endl
         << "define shape box testBox -50 -140 -40 -350 -50 180 blue" << std::endl << std::endl
         << "define shape composite testComposite testSphere testBox" << std::endl << std::endl
-        << "define light -3000 1000 -1500 1.0 0.3 0.3 1.0" << std::endl << std::endl
-        << "define camera cam1 60 0 200 500 0 -1 -7 0 7 1" << std::endl << std::endl
-        << "transform testSphere scale " << 
-        ss.str() + " " + ss.str() + " " + ss.str() << std::endl;
+        << "define light -3000 1000 -1500 1.0 0.3 0.3 1.0" << std::endl << std::endl;
+
+    ofs << "define camera cam1 60 ";
+    if (iteration >= 30) ofs << "500 200 1000 -7 -1 0 1 7 0";
+    else if (iteration < 20) ofs << "0 200 500 0 -1 -7 0 7 1";
+    else
+    {
+        std::stringstream camera;
+        float const completion = (float)(iteration - 20.f) / 9.f; //ranges from 0 to 1
+        float const cosVal = cos(completion * M_PI); //ranges from 0 to PI -> 1 to 0
+        float const z = cosVal;
+        float const x = (1.f - cosVal);
+
+        camera << std::fixed << std::setprecision(2) << completion * 500.f << " " << 200.f << " " << 500.f + completion * 500.f << " " <<
+            -7.f * x << " " << -1 << " " << -7.f * z << " " << x << " " << 7 << " " << z;
+
+        ofs << camera.str();
+    }
+
+    ofs << std::endl << std::endl
+        << "transform testSphere scale ";
+    if (iteration >= 10) ofs << "2 2 2";
+    else
+    {
+        std::stringstream sphereScale;
+        sphereScale << std::fixed << std::setprecision(2) << 1.f + (float)(iteration - 10.f) / 9.f; //from 1 to 2
+        ofs << sphereScale.str() + " " + sphereScale.str() + " " + sphereScale.str() << std::endl;
+    }
 }
 
 void raytrace(int iteration, int maxIteration)
@@ -456,8 +490,8 @@ void raytrace(int iteration, int maxIteration)
 //now single threaded again
 int main(int argc, char* argv[])
 {
-    int const frames = 10;
-    for (int i = 0; i < frames; ++i)
+    int const frames = 30;
+    for (int i = 20; i < frames; ++i)
     {
         makeAnimationSdf(i, frames - 1);
         raytrace(i, frames - 1);
