@@ -36,9 +36,6 @@ HitPoint Sphere::intersect(Ray const& ray) const
 
 	if (h.intersect)
 	{
-		glm::vec3 distVec = h.intersectPoint - r.origin;
-
-		h.dist = sqrt(pow(distVec.x, 2) + pow(distVec.y, 2) + pow(distVec.z, 2));
 		h.objName = name_;
 		h.objMat = m_;
 		h.rayDirection = r.direction;
@@ -52,6 +49,10 @@ HitPoint Sphere::intersect(Ray const& ray) const
 		glm::vec4 intersect4 = getWorldTransformation() *
 			glm::vec4{ h.intersectPoint.x, h.intersectPoint.y, h.intersectPoint.z, 1.f };
 		h.intersectPoint = glm::vec3{ intersect4.x, intersect4.y, intersect4.z };
+
+
+		glm::vec3 distVec = h.intersectPoint - ray.origin; //distance calculated after intersection, using original ray
+		h.dist = sqrt(pow(distVec.x, 2) + pow(distVec.y, 2) + pow(distVec.z, 2));
 	}
 
 	return h;

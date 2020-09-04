@@ -38,20 +38,6 @@ Color operator*=(Color& color, float f)
     return color;
 }
 
-Ray transformRay(glm::mat4 const& mat, Ray const& ray)
-{
-    glm::vec4 p4{ ray.origin.x, ray.origin.y, ray.origin.z, 1.f };
-    glm::vec4 d4{ ray.direction.x, ray.direction.y, ray.direction.z, 0.f };
-
-    p4 = glm::inverse(mat) * p4;
-    d4 = glm::inverse(mat) * d4;
-
-    return{
-        {p4.x, p4.y, p4.z},
-        {d4.x, d4.y, d4.z}
-    };
-}
-
 void makeAnimationSdf(int iteration, int maxIteration)
 {
     std::ofstream ofs("scene.sdf", std::ios_base::out | std::ios_base::binary);
@@ -60,16 +46,15 @@ void makeAnimationSdf(int iteration, int maxIteration)
         << "define material table 0.7 0.6 0.0 0.7 0.6 0.0 1.0 1.0 1.0 10 0.2 0.0 1.0" << std::endl;
 
     ofs << "define material blue 0.0 0.3 0.9 0.0 0.3 0.9 1.0 1.0 1.0 10 ";
-    if (iteration >= 20) ofs << 1.0;
-    else if (iteration < 10) ofs << 0.0;
+    if (iteration >= 40) ofs << 1.0;
+    else if (iteration < 20) ofs << 0.0;
     else
     {
         std::stringstream boxReflectivity;
 
-        boxReflectivity << std::fixed << std::setprecision(2) << (float)(iteration - 10.f) / 9.f;
+        boxReflectivity << std::fixed << std::setprecision(2) << (float)(iteration - 20.f) / 19.f;
         ofs << boxReflectivity.str();
     }
-    ofs << std::endl;
     ofs << " 0.0 1.0" << std::endl << std::endl;
 
     ofs << "define shape sphere testSphere 0 -70 -150 80 purple" << std::endl << std::endl
@@ -79,17 +64,17 @@ void makeAnimationSdf(int iteration, int maxIteration)
         << "define light -3000 1000 -1500 1.0 0.3 0.3 1.0" << std::endl << std::endl;
 
     ofs << "define camera cam1 60 ";
-    if (iteration >= 30) ofs << "500 200 1000 -7 -1 0 1 7 0";
-    else if (iteration < 20) ofs << "0 200 500 0 -1 -7 0 7 1";
+    if (iteration >= 70) ofs << "500 500 0 -7 -1 0 1 7 0";
+    else if (iteration < 40) ofs << "0 200 500 0 -1 -7 0 7 1";
     else
     {
         std::stringstream camera;
-        float const completion = (float)(iteration - 20.f) / 9.f; //ranges from 0 to 1
-        float const cosVal = cos(completion * M_PI); //ranges from 0 to PI -> 1 to 0
+        float const completion = (float)(iteration - 40.f) / 29.f; //ranges from 0 to 1
+        float const cosVal = cos(completion * M_PI / 2); //ranges from 0 to PI / 2 -> 1 to 0
         float const z = cosVal;
         float const x = (1.f - cosVal);
 
-        camera << std::fixed << std::setprecision(2) << completion * 500.f << " " << 200.f << " " << 500.f + completion * 500.f << " " <<
+        camera << std::fixed << std::setprecision(2) << completion * 500.f << " " << 200.f + completion * 300.f << " " << 500.f - completion * 1000.f << " " <<
             -7.f * x << " " << -1 << " " << -7.f * z << " " << x << " " << 7 << " " << z;
 
         ofs << camera.str();
@@ -97,12 +82,22 @@ void makeAnimationSdf(int iteration, int maxIteration)
 
     ofs << std::endl << std::endl
         << "transform testSphere scale ";
-    if (iteration >= 10) ofs << "2 2 2";
+    if (iteration >= 20) ofs << "2 2 2";
     else
     {
         std::stringstream sphereScale;
-        sphereScale << std::fixed << std::setprecision(2) << 1.f + (float)(iteration - 10.f) / 9.f; //from 1 to 2
-        ofs << sphereScale.str() + " " + sphereScale.str() + " " + sphereScale.str() << std::endl;
+        sphereScale << std::fixed << std::setprecision(2) << 1.f + (float)(iteration) / 19.f; //from 1 to 2
+        ofs << sphereScale.str() + " " + sphereScale.str() + " " + sphereScale.str();
+    }
+
+    if (iteration >= 90) ofs << "transform testComposite rotate -90 0 0 1";
+    else if (iteration >= 70)
+    {
+        float const completion = (float)(iteration - 70.f) / 19.f;
+
+        std::stringstream compositeRotation;
+        compositeRotation << std::fixed << std::setprecision(2) << completion * -90.f << " 0 0 1";
+        ofs << "transform testComposite rotate " << compositeRotation.str();
     }
 }
 
@@ -361,7 +356,7 @@ void raytrace(int iteration, int maxIteration)
                         glm::vec4 lightDir4{ lightDirection.x, lightDirection.y, lightDirection.z, 1.f };
                         glm::vec3 rotAxis = closestHit.objNormal;
                         glm::mat4 rotMat = glm::rotate((float)M_PI, rotAxis); //rotate 180 degrees around the normal
-                        glm::vec4 reflectedLightDir4 = -lightDir4 * rotMat;
+                        glm::vec4 reflectedLightDir4 = rotMat * -lightDir4;
 
                         glm::vec3 reflectedLightDirection{ reflectedLightDir4 };
                         reflectedLightDirection = glm::normalize(reflectedLightDirection);
@@ -400,7 +395,7 @@ void raytrace(int iteration, int maxIteration)
                             glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
                             glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 1.f };
 
-                            glm::vec4 refractDir4 = -norm4 * rotMat; //rotating the normal instead of the direction
+                            glm::vec4 refractDir4 = rotMat * -norm4; //rotating the normal instead of the direction
                             glm::vec3 refractDir{ refractDir4 };
 
                             HitPoint h = s.get()->intersect(Ray{ //attempt to intersect with our shape (should work if it isn't unreasonably thin at this point)
@@ -448,12 +443,12 @@ void raytrace(int iteration, int maxIteration)
                     glm::mat4 rotMat = glm::rotate((float)M_PI, closestHit.objNormal);
                     glm::vec4 direction4{ direction.x, direction.y, direction.z, 1.f };
 
-                    glm::vec4 newDir4 = -direction4 * rotMat;
+                    glm::vec4 newDir4 = rotMat * -direction4;
                     direction = glm::vec3{ newDir4 }; //reflect direction
                     direction = glm::normalize(direction);
 
                     ++reflectionCount;
-                    lighting(closestHit.objMat.reflectivity, 1.f);
+                    lighting(closestHit.objMat.reflectivity, 1.f); //should replace 1.f with refractivity
                 }
             };
 
@@ -490,8 +485,8 @@ void raytrace(int iteration, int maxIteration)
 //now single threaded again
 int main(int argc, char* argv[])
 {
-    int const frames = 30;
-    for (int i = 20; i < frames; ++i)
+    int const frames = 13;
+    for (int i = 12; i < frames; ++i)
     {
         makeAnimationSdf(i, frames - 1);
         raytrace(i, frames - 1);
