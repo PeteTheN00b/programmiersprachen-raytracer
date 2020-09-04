@@ -38,7 +38,7 @@ HitPoint Sphere::intersect(Ray const& ray) const
 	{
 		h.objName = name_;
 		h.objMat = m_;
-		h.rayDirection = r.direction;
+		h.rayDirection = ray.direction;
 
 		h.objNormal = h.intersectPoint - centre_;
 		glm::vec4 norm4 = glm::transpose(glm::inverse(getWorldTransformation())) * //take transformations into account for the normal calculation

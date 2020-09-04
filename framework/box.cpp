@@ -104,7 +104,6 @@ void Box::intersectPlane(HitPoint& h, Ray const& r, Dim plane) const
 		h.intersectPoint = { rayPointX, rayPointY, rayPointZ };
 		h.objMat = m_;
 		h.objName = name_;
-		h.rayDirection = r.direction; //still not sure as to what this helps with
 
 
 		glm::vec4 norm4 = glm::transpose(glm::inverse(getWorldTransformation())) * //take transformations into account for the normal calculation
@@ -132,6 +131,8 @@ HitPoint Box::intersect(Ray const& ray) const //assuming normalized input ray
 	intersectPlane(h, r, Dim::negY);
 	intersectPlane(h, r, Dim::posZ);
 	intersectPlane(h, r, Dim::negZ);
+
+	h.rayDirection = ray.direction;
 
 	return h;
 }
