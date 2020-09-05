@@ -61,7 +61,20 @@ void makeAnimationSdf(int iteration, int maxIteration)
         << "define shape box table -500 -160 -3300 500 -140 2700 table" << std::endl
         << "define shape box testBox -50 -140 -40 -350 -50 180 blue" << std::endl << std::endl
         << "define shape composite testComposite testSphere testBox" << std::endl << std::endl
-        << "define light -3000 1000 -1500 1.0 0.3 0.3 1.0" << std::endl << std::endl;
+        << "define light -3000 1000 -1500 1.0 ";
+
+    if (iteration < 90) ofs << "1.0 1.0";
+    else
+    {
+        std::stringstream light;
+        float const completion = (float)(iteration - 90.f) / 29.f; //ranges from 0 to 1
+
+        light << std::fixed << std::setprecision(2) << 1 - completion << " " << 1 - completion;
+        ofs << light.str();
+    }
+        
+    ofs << " 1.0" << std::endl << std::endl;
+
 
     ofs << "define camera cam1 60 ";
     if (iteration >= 70) ofs << "500 500 0 -7 -1 0 1 7 0";
@@ -485,8 +498,8 @@ void raytrace(int iteration, int maxIteration)
 //now single threaded again
 int main(int argc, char* argv[])
 {
-    int const frames = 13;
-    for (int i = 12; i < frames; ++i)
+    int const frames = 90;
+    for (int i = 70; i < frames; ++i)
     {
         makeAnimationSdf(i, frames - 1);
         raytrace(i, frames - 1);
