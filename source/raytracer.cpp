@@ -378,7 +378,7 @@ void raytrace(int iteration, int maxIteration)
                             //we want to find the direction light is reflected in, by rotating it 180 degrees around the normal and inverting it (necessary for specular lighting)
                             glm::vec3 lightDirection = closestHit.intersectPoint + closestHit.objNormal - l.get()->origin;
 
-                            glm::vec4 lightDir4{ lightDirection.x, lightDirection.y, lightDirection.z, 1.f };
+                            glm::vec4 lightDir4{ lightDirection.x, lightDirection.y, lightDirection.z, 0.f };
                             glm::vec3 rotAxis = closestHit.objNormal;
                             glm::mat4 rotMat = glm::rotate((float)M_PI, rotAxis); //rotate 180 degrees around the normal
                             glm::vec4 reflectedLightDir4 = rotMat * -lightDir4;
@@ -420,7 +420,7 @@ void raytrace(int iteration, int maxIteration)
                             if (refractionCount > 1) std::cout << "Refraction Repetition Fail!" << std::endl;
 
                             glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
-                            glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 1.f };
+                            glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 0.f };
 
                             glm::vec4 refractDir4 = rotMat * -norm4; //rotating the normal instead of the direction
                             glm::vec3 refractDir{ refractDir4 };
@@ -451,7 +451,8 @@ void raytrace(int iteration, int maxIteration)
                         }
                     }
                 }
-                else
+                else //if an intersection didn't occur, we will instead render the background color at this point
+                    //(we multiply it by the reflectivity and refractivity in the case that this is being reflected off of / refracted through an object at less than 100% intensity)
                 {
                     pColor += bgColor * reflectivity * refractivity;
                     return;
@@ -468,7 +469,7 @@ void raytrace(int iteration, int maxIteration)
                     origin = closestHit.intersectPoint + closestHit.objNormal * 0.01f; //shift origin (add normal to make sure our hit test doesn't collide with the object)
 
                     glm::mat4 rotMat = glm::rotate((float)M_PI, closestHit.objNormal);
-                    glm::vec4 direction4{ direction.x, direction.y, direction.z, 1.f };
+                    glm::vec4 direction4{ direction.x, direction.y, direction.z, 0.f };
 
                     glm::vec4 newDir4 = rotMat * -direction4;
                     direction = glm::vec3{ newDir4 }; //reflect direction
