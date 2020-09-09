@@ -46,20 +46,20 @@ void makeAnimationSdf(int iteration, int maxIteration)
         << "define material table 0.7 0.6 0.0 0.7 0.6 0.0 1.0 1.0 1.0 10 0.2 0.0 1.0" << std::endl;
 
     ofs << "define material blue 0.0 0.3 0.9 0.0 0.3 0.9 1.0 1.0 1.0 10 ";
-    if (iteration >= 40) ofs << 1.0;
+    if (iteration >= 40) ofs << 0.9;
     else if (iteration < 20) ofs << 0.0;
     else
     {
         std::stringstream boxReflectivity;
 
-        boxReflectivity << std::fixed << std::setprecision(2) << (float)(iteration - 20.f) / 19.f;
+        boxReflectivity << std::fixed << std::setprecision(2) << (float)(iteration - 20.f) * 0.9f / 19.f;
         ofs << boxReflectivity.str();
     }
     ofs << " 0.0 1.0" << std::endl << std::endl;
 
     ofs << "define shape sphere testSphere 0 -70 -150 80 purple" << std::endl << std::endl
-        << "define shape box table -500 -160 -3300 500 -140 2700 table" << std::endl
-        << "define shape box testBox -50 -140 -40 -350 -50 180 blue" << std::endl << std::endl
+        << "define shape box table -400 -160 -3300 400 -140 2700 table" << std::endl
+        << "define shape box testBox -150 -140 40 -350 -90 150 blue" << std::endl << std::endl
         << "define shape composite testComposite testSphere testBox table" << std::endl << std::endl
         << "define light -3000 1000 -1500 1.0 ";
 
@@ -193,7 +193,8 @@ void raytrace(int iteration, int maxIteration)
 
                     in_sstream >> name >> p1.x >> p1.y >> p1.z >> p2.x >> p2.y >> p2.z >> matName;
 
-                    world.createBox(name, matName, p1 / 2.f + p2 / 2.f, abs(p2.x - p1.x) / 2.f, abs(p2.y - p1.y) / 2.f, abs(p2.z - p1.z) / 2.f);
+                    world.createBox(name, matName, (p1 + p2) / 2.f,
+                        abs(p2.x - p1.x), abs(p2.y - p1.y), abs(p2.z - p1.z));
                 }
                 else if ("sphere" == identifier)
                 {
@@ -402,54 +403,54 @@ void raytrace(int iteration, int maxIteration)
 
                     //NOTE: refraction does not work with multiple reflactive surfaces inside of each other
                     //this is still inside of the intersection if statement, so a hit must have occurred
-                    if (closestHit.objMat.refractivity > 0.001f) //if our object is refractive, perform another lighting call using refractive information
-                    {
-                        std::shared_ptr<Shape> s = world.findShape(closestHit.objName);
+                    //if (closestHit.objMat.refractivity > 0.001f) //if our object is refractive, perform another lighting call using refractive information
+                    //{
+                    //    std::shared_ptr<Shape> s = world.findShape(closestHit.objName);
 
-                        if (nullptr != s)
-                        {
-                            //our surface normal and direction should already be normalized
-                            glm::vec3 rotAxis = glm::cross(closestHit.objNormal, direction); //we want to rotate around the line which is perpendicular to both our incident ray and surface normal
-                            float rotAngle = asin(
-                                sin(
-                                    acos(glm::dot(closestHit.objNormal, direction)) //the angle between our normal and incident ray
-                                )
-                                / closestHit.objMat.refractiveIndex
-                            );
+                    //    if (nullptr != s)
+                    //    {
+                    //        //our surface normal and direction should already be normalized
+                    //        glm::vec3 rotAxis = glm::cross(closestHit.objNormal, direction); //we want to rotate around the line which is perpendicular to both our incident ray and surface normal
+                    //        float rotAngle = asin(
+                    //            sin(
+                    //                acos(glm::dot(closestHit.objNormal, direction)) //the angle between our normal and incident ray
+                    //            )
+                    //            / closestHit.objMat.refractiveIndex
+                    //        );
 
-                            if (refractionCount > 1) std::cout << "Refraction Repetition Fail!" << std::endl;
+                    //        if (refractionCount > 1) std::cout << "Refraction Repetition Fail!" << std::endl;
 
-                            glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
-                            glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 0.f };
+                    //        glm::mat4 rotMat = glm::rotate(rotAngle, rotAxis);
+                    //        glm::vec4 norm4{ closestHit.objNormal.x, closestHit.objNormal.y, closestHit.objNormal.z, 0.f };
 
-                            glm::vec4 refractDir4 = rotMat * -norm4; //rotating the normal instead of the direction
-                            glm::vec3 refractDir{ refractDir4 };
+                    //        glm::vec4 refractDir4 = rotMat * -norm4; //rotating the normal instead of the direction
+                    //        glm::vec3 refractDir{ refractDir4 };
 
-                            HitPoint h = s.get()->intersect(Ray{ //attempt to intersect with our shape (should work if it isn't unreasonably thin at this point)
-                                closestHit.intersectPoint - closestHit.objNormal * 0.01f, //trace a ray starting inside of our shape
-                                refractDir });
+                    //        HitPoint h = s.get()->intersect(Ray{ //attempt to intersect with our shape (should work if it isn't unreasonably thin at this point)
+                    //            closestHit.intersectPoint - closestHit.objNormal * 0.01f, //trace a ray starting inside of our shape
+                    //            refractDir });
 
-                            if (h.intersect)
-                            {
-                                //save our origin, because we are going to need to revert it back after recursively calling the function
-                                glm::vec3 oldOrigin = origin;
+                    //        if (h.intersect)
+                    //        {
+                    //            //save our origin, because we are going to need to revert it back after recursively calling the function
+                    //            glm::vec3 oldOrigin = origin;
 
-                                //we will recursively call our function to add lighting based on what we find upon leaving our surface,
-                                //this however renders objects within a refractive object invisible
-                                origin = h.intersectPoint + h.objNormal * 0.01f;
+                    //            //we will recursively call our function to add lighting based on what we find upon leaving our surface,
+                    //            //this however renders objects within a refractive object invisible
+                    //            origin = h.intersectPoint + h.objNormal * 0.01f;
 
-                                ++refractionCount;
-                                lighting(1.f, h.objMat.refractivity); //currently crashes, conditions cause infinite recursion
+                    //            ++refractionCount;
+                    //            lighting(1.f, h.objMat.refractivity); //currently crashes, conditions cause infinite recursion
 
-                                origin = oldOrigin;
-                            }
-                            else
-                            {
-                                pColor += bgColor * reflectivity; //ignore refractivvity since no refraction occurred
-                                return;
-                            }
-                        }
-                    }
+                    //            origin = oldOrigin;
+                    //        }
+                    //        else
+                    //        {
+                    //            pColor += bgColor * reflectivity; //ignore refractivvity since no refraction occurred
+                    //            return;
+                    //        }
+                    //    }
+                    //}
                 }
                 else //if an intersection didn't occur, we will instead render the background color at this point
                     //(we multiply it by the reflectivity and refractivity in the case that this is being reflected off of / refracted through an object at less than 100% intensity)
@@ -465,9 +466,7 @@ void raytrace(int iteration, int maxIteration)
                     closestHit.objMat.reflectivity > 0.001f && //only reflect when necessary
                     reflectionCount < maxReflectionCount) //prevent infinite loops between reflective surfaces
                 {
-                    //preparation for reflection
-                    origin = closestHit.intersectPoint + closestHit.objNormal * 0.01f; //shift origin (add normal to make sure our hit test doesn't collide with the object)
-
+                    //shift origin and direction to bounce off of the point of our mirror surface
                     glm::mat4 rotMat = glm::rotate((float)M_PI, closestHit.objNormal);
                     glm::vec4 direction4{ direction.x, direction.y, direction.z, 0.f };
 
@@ -475,8 +474,10 @@ void raytrace(int iteration, int maxIteration)
                     direction = glm::vec3{ newDir4 }; //reflect direction
                     direction = glm::normalize(direction);
 
+                    origin = closestHit.intersectPoint + direction * 0.01f; //shift origin (add direction to make sure our hit test doesn't collide with the object)
+
                     ++reflectionCount;
-                    lighting(closestHit.objMat.reflectivity, 1.f); //should replace 1.f with refractivity
+                    lighting(closestHit.objMat.reflectivity, 1.f); //should replace 1.f with refractivity parameter
                 }
             };
 
@@ -497,24 +498,24 @@ void raytrace(int iteration, int maxIteration)
             + (float)iteration / (float)(maxIteration + 1)) * 100.f << "% completed" << std::endl;
     }
 
-    Window window{ {image_width, image_height} };
+    //Window window{ {image_width, image_height} };
 
     ofs.close();
 
-    while (!window.should_close()) {
+    /*while (!window.should_close()) {
         if (window.get_key(GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             window.close();
         }
         window.show(renderer.color_buffer());
-    }
+    }*/
 }
 
 
 //now single threaded again
 int main(int argc, char* argv[])
 {
-    int const frames = 36;
-    for (int i = 35; i < frames; ++i)
+    int const frames = 120;
+    for (int i = 0; i < frames; ++i)
     {
         makeAnimationSdf(i, frames - 1);
         raytrace(i, frames - 1);
